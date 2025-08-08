@@ -140,7 +140,7 @@ function escapeHtml(text: string): string {
     .replaceAll(/'/g, "&#039;");
 }
 
-function useCollection(collection: CollectionKey, userId?: string) {
+function useCollection(collection: CollectionKey) {
   // When signed in, use server API; fallback to empty if not
   const { sections, addSectionApi, updateSectionApi, deleteSectionApi } = useSectionsApi(collection);
   const add = useCallback(() => addSectionApi({ collection }), [collection, addSectionApi]);
@@ -250,7 +250,8 @@ export default function Home() {
     return (active === "fastCalculations" ? "medications" : active) as CollectionKey;
   }, [active]);
   const { data: session } = useSession();
-  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive, userId);
+  const userId = session?.user?.email?.toLowerCase();
+  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive);
   const [search, setSearch] = useState("");
 
   const handleCopy = async (title: string, html: string) => {
