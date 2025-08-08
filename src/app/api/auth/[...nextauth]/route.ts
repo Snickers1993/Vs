@@ -15,7 +15,8 @@ export const authOptions = {
         const password = credentials?.password?.toString() || "";
         if (!email || !password) return null;
         // Demo-only: accept any non-empty email/password and use email as id
-        return { id: email.toLowerCase(), email } as any;
+        const user: { id: string; email: string } = { id: email.toLowerCase(), email };
+        return user;
       },
     }),
   ],

@@ -13,7 +13,6 @@ import {
   updateSection,
   useSectionsByCollection,
   type CollectionKey,
-  type DbSection,
 } from "@/lib/db";
 import {
   useWorkspaceItems,
@@ -42,7 +41,9 @@ const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "fastCalculations", label: "Fast Calculations" },
 ];
 
-function Toolbar({ editor }: { editor: any }) {
+import type { Editor } from "@tiptap/react";
+
+function Toolbar({ editor }: { editor: Editor | null }) {
   if (!editor) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 bg-white shadow-sm">
@@ -495,12 +496,12 @@ function MainWithWorkspace({
                     <a
                       className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
                       href={URL.createObjectURL(h.blob)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+          target="_blank"
+          rel="noopener noreferrer"
+        >
                       Open
-                    </a>
-                    <a
+        </a>
+        <a
                       className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
                       href={URL.createObjectURL(h.blob)}
                       download={h.name}
