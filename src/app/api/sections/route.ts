@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   const userId = session?.user?.email ?? "guest";
   const { searchParams } = new URL(req.url);
   const collection = searchParams.get("collection") ?? undefined;
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   const userId = session?.user?.email ?? "guest";
   const body = await req.json();
   const created = await prisma.section.create({
