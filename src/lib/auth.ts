@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         if (!user || !user.hashedPassword) return null;
         const ok = await bcrypt.compare(password, user.hashedPassword);
         if (!ok) return null;
-        return { id: user.id, email: user.email ?? email } as any;
+        return { id: user.id, email: user.email ?? email } as { id: string; email: string };
       },
     }),
   ],
