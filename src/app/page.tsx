@@ -22,6 +22,7 @@ import {
   clearWorkspace,
 } from "@/lib/db";
 import { useHandouts, addHandoutFromFile, deleteHandout } from "@/lib/db";
+import { useSession, signIn } from "next-auth/react";
 
 type Section = {
   id: string;
@@ -143,9 +144,9 @@ function escapeHtml(text: string): string {
     .replaceAll(/'/g, "&#039;");
 }
 
-function useCollection(collection: CollectionKey) {
-  const sections = useSectionsByCollection(collection);
-  const add = useCallback(() => addSection(collection), [collection]);
+function useCollection(collection: CollectionKey, userId?: string) {
+  const sections = useSectionsByCollection(collection, userId);
+  const add = useCallback(() => addSection(collection, userId), [collection, userId]);
   const updateTitle = useCallback((id: string, title: string) => updateSection(id, { title }), []);
   const updateContent = useCallback((id: string, content: string) => updateSection(id, { content }), []);
   const removeById = useCallback((id: string) => deleteSection(id), []);
@@ -251,7 +252,9 @@ export default function Home() {
   const collectionForActive: CollectionKey = useMemo(() => {
     return (active === "fastCalculations" ? "medications" : active) as CollectionKey;
   }, [active]);
-  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive);
+  const { data: session } = useSession();
+  const userId = session?.user?.email?.toLowerCase();
+  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive, userId);
   const [search, setSearch] = useState("");
 
   const handleCopy = async (title: string, html: string) => {
@@ -313,14 +316,23 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="mb-3">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title or content…"
-            className="w-full md:w-1/2 rounded-md border bg-white px-3 py-2 outline-none ring-0 focus:border-slate-900"
-          />
-        </div>
+        {active !== "fastCalculations" && (
+          <div className="mb-3">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search title or content…"
+              className="w-full md:w-1/2 rounded-md border bg-white px-3 py-2 outline-none ring-0 focus:border-slate-900"
+            />
+          </div>
+        )}
+
+        {!session && (
+          <div className="mb-4 rounded-md border bg-white p-3 text-sm text-slate-700">
+            You are not signed in. Your data is stored locally in this browser. For multi-device access, please
+            <button className="ml-2 underline" onClick={() => signIn("credentials", { callbackUrl: "/" })}>sign in</button>.
+          </div>
+        )}
 
         <MainWithWorkspace
           sections={filteredSections}
@@ -330,6 +342,7 @@ export default function Home() {
           handleCopy={handleCopy}
           handleCopyText={handleCopyText}
           active={active}
+          userId={userId}
         />
       </div>
     </div>
@@ -344,6 +357,7 @@ function MainWithWorkspace({
   handleCopy,
   handleCopyText,
   active,
+  userId,
 }: {
   sections: Section[];
   updateTitle: (id: string, title: string) => void;
@@ -352,12 +366,13 @@ function MainWithWorkspace({
   handleCopy: (title: string, html: string) => Promise<void>;
   handleCopyText: (title: string, html: string) => Promise<void>;
   active: TabKey;
+  userId?: string;
 }) {
-  const workspace = useWorkspaceItems();
-  const handouts = useHandouts();
+  const workspace = useWorkspaceItems(userId);
+  const handouts = useHandouts(userId);
 
   const addToWorkspace = async (s: Section) => {
-    await addWorkspaceItem({ title: s.title, html: s.content });
+    await addWorkspaceItem({ title: s.title, html: s.content, userId });
   };
 
   const copyAllWorkspaceRich = async () => {
@@ -459,8 +474,8 @@ function MainWithWorkspace({
                 className="hidden"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (file) {
-                    await addHandoutFromFile(file);
+                if (file) {
+                  await addHandoutFromFile(file, userId);
                     e.currentTarget.value = "";
                   }
                 }}

@@ -16,6 +16,7 @@ export type DbSection = {
   content: string;
   createdAt: number;
   updatedAt: number;
+  userId?: string;
 };
 
 export type WorkspaceItem = {
@@ -25,6 +26,7 @@ export type WorkspaceItem = {
   text: string;
   order: number;
   createdAt: number;
+  userId?: string;
 };
 
 class VetDB extends Dexie {
@@ -35,28 +37,29 @@ class VetDB extends Dexie {
     super("vet-discharge-db");
     this.version(1).stores({
       // Indexes: primary key id, and secondary indexes for queries
-      sections: "id, collection, title, createdAt, updatedAt",
+      sections: "id, collection, title, createdAt, updatedAt, userId",
     });
     this.version(2).stores({
-      workspaceItems: "id, createdAt, order",
+      workspaceItems: "id, createdAt, order, userId",
     });
     this.version(3).stores({
-      handouts: "id, createdAt, name, type, size",
+      handouts: "id, createdAt, name, type, size, userId",
     });
   }
 }
 
 export const db = new VetDB();
 
-export function useSectionsByCollection(collection: CollectionKey): DbSection[] {
+export function useSectionsByCollection(collection: CollectionKey, userId?: string): DbSection[] {
   const items = useLiveQuery(async () => {
-    const rows = await db.sections.where("collection").equals(collection).toArray();
+    let rows = await db.sections.where("collection").equals(collection).toArray();
+    if (userId) rows = rows.filter((r) => r.userId === userId);
     return rows.sort((a, b) => b.updatedAt - a.updatedAt);
-  }, [collection], [] as DbSection[]);
+  }, [collection, userId], [] as DbSection[]);
   return items ?? [];
 }
 
-export async function addSection(collection: CollectionKey): Promise<string> {
+export async function addSection(collection: CollectionKey, userId?: string): Promise<string> {
   const id = crypto.randomUUID();
   const now = Date.now();
   await db.sections.add({
@@ -66,6 +69,7 @@ export async function addSection(collection: CollectionKey): Promise<string> {
     content: "",
     createdAt: now,
     updatedAt: now,
+    userId,
   });
   return id;
 }
@@ -82,15 +86,16 @@ export async function deleteSection(id: string): Promise<void> {
 }
 
 // Workspace helpers
-export function useWorkspaceItems(): WorkspaceItem[] {
+export function useWorkspaceItems(userId?: string): WorkspaceItem[] {
   const items = useLiveQuery(async () => {
-    const rows = await db.workspaceItems.toArray();
+    let rows = await db.workspaceItems.toArray();
+    if (userId) rows = rows.filter((r) => r.userId === userId);
     return rows.sort((a, b) => a.order - b.order || a.createdAt - b.createdAt);
-  }, [], [] as WorkspaceItem[]);
+  }, [userId], [] as WorkspaceItem[]);
   return items ?? [];
 }
 
-export async function addWorkspaceItem(params: { title: string; html?: string; text?: string }): Promise<string> {
+export async function addWorkspaceItem(params: { title: string; html?: string; text?: string; userId?: string }): Promise<string> {
   const id = crypto.randomUUID();
   const now = Date.now();
   const count = await db.workspaceItems.count();
@@ -103,6 +108,7 @@ export async function addWorkspaceItem(params: { title: string; html?: string; t
     text,
     order: count,
     createdAt: now,
+    userId: params.userId,
   });
   return id;
 }
@@ -150,18 +156,20 @@ export type Handout = {
   size: number;
   blob: Blob;
   createdAt: number;
+  userId?: string;
 };
 
-export function useHandouts(): Handout[] {
+export function useHandouts(userId?: string): Handout[] {
   const items = useLiveQuery(async () => {
-    const rows = await db.handouts.toArray();
+    let rows = await db.handouts.toArray();
+    if (userId) rows = rows.filter((r) => r.userId === userId);
     return rows.sort((a, b) => b.createdAt - a.createdAt);
-  }, [], [] as Handout[]);
+  }, [userId], [] as Handout[]);
     
   return items ?? [];
 }
 
-export async function addHandoutFromFile(file: File): Promise<string> {
+export async function addHandoutFromFile(file: File, userId?: string): Promise<string> {
   const id = crypto.randomUUID();
   const now = Date.now();
   const blob = file.slice(0, file.size, file.type || "application/octet-stream");
@@ -172,6 +180,7 @@ export async function addHandoutFromFile(file: File): Promise<string> {
     size: file.size,
     blob,
     createdAt: now,
+    userId,
   });
   return id;
 }
