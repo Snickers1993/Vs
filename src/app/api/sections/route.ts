@@ -6,7 +6,11 @@ import type { NextRequest } from "next/server";
 export async function GET(req: NextRequest) {
   const session = await getServerSession();
   const userId = session?.user?.email ?? "guest";
-  const sections = await prisma.section.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } });
+  const { searchParams } = new URL(req.url);
+  const collection = searchParams.get("collection") ?? undefined;
+  const where: any = { userId };
+  if (collection) where.collection = collection;
+  const sections = await prisma.section.findMany({ where, orderBy: { updatedAt: "desc" } });
   return NextResponse.json(sections);
 }
 

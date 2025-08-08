@@ -7,13 +7,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
-import {
-  addSection,
-  deleteSection,
-  updateSection,
-  useSectionsByCollection,
-  type CollectionKey,
-} from "@/lib/db";
+import { type CollectionKey } from "@/lib/db";
+import { useSectionsApi } from "@/lib/sections";
 import {
   useWorkspaceItems,
   addWorkspaceItem,
@@ -146,12 +141,13 @@ function escapeHtml(text: string): string {
 }
 
 function useCollection(collection: CollectionKey, userId?: string) {
-  const sections = useSectionsByCollection(collection, userId);
-  const add = useCallback(() => addSection(collection, userId), [collection, userId]);
-  const updateTitle = useCallback((id: string, title: string) => updateSection(id, { title }), []);
-  const updateContent = useCallback((id: string, content: string) => updateSection(id, { content }), []);
-  const removeById = useCallback((id: string) => deleteSection(id), []);
-  return { sections, add, updateTitle, updateContent, removeById };
+  // When signed in, use server API; fallback to empty if not
+  const { sections, addSectionApi, updateSectionApi, deleteSectionApi } = useSectionsApi(collection);
+  const add = useCallback(() => addSectionApi({ collection }), [collection, addSectionApi]);
+  const updateTitle = useCallback((id: string, title: string) => updateSectionApi(id, { title }), [updateSectionApi]);
+  const updateContent = useCallback((id: string, content: string) => updateSectionApi(id, { content }), [updateSectionApi]);
+  const removeById = useCallback((id: string) => deleteSectionApi(id), [deleteSectionApi]);
+  return { sections: sections as any, add, updateTitle, updateContent, removeById };
 }
 
 function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete }: {
