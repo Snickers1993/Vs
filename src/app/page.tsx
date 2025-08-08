@@ -402,7 +402,7 @@ function MainWithWorkspace({
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {sections.length === 0 && (
-              <div className="col-span-full text-slate-600">No sections yet. Click "Add section" to begin.</div>
+              <div className="col-span-full text-slate-600">No sections yet. Click &quot;Add section&quot; to begin.</div>
             )}
             {sections.map((section) => (
               <div key={section.id} className="space-y-2">
@@ -460,7 +460,7 @@ function MainWithWorkspace({
               </div>
             ))}
             {workspace.length === 0 && (
-              <div className="text-sm text-slate-600 py-6 text-center">No items yet. Use "Add to Workspace".</div>
+              <div className="text-sm text-slate-600 py-6 text-center">No items yet. Use &quot;Add to Workspace&quot;.</div>
             )}
           </div>
         </div>
