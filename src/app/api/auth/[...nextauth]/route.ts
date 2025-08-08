@@ -1,8 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcrypt";
 
 const handler = NextAuth({
   session: { strategy: "jwt" },
+  adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
       name: "Credentials",
@@ -14,7 +18,12 @@ const handler = NextAuth({
         const email = credentials?.email?.toString().trim() || "";
         const password = credentials?.password?.toString() || "";
         if (!email || !password) return null;
-        return { id: email.toLowerCase(), email };
+        // Look up user in DB
+        const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+        if (!user || !user.hashedPassword) return null;
+        const ok = await bcrypt.compare(password, user.hashedPassword);
+        if (!ok) return null;
+        return { id: user.id, email: user.email ?? email } as any;
       },
     }),
   ],

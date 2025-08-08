@@ -13,12 +13,20 @@ export default function SignUpPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    // Demo-only: no server persistence. In a real app you would POST to an API to create a user.
     if (!email || !password) {
       setError("Email and password required");
       return;
     }
-    // Redirect to sign-in with the email filled via URL param
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Registration failed");
+      return;
+    }
     router.push(`/auth/signin?email=${encodeURIComponent(email)}`);
   }
 
