@@ -250,7 +250,6 @@ export default function Home() {
     return (active === "fastCalculations" ? "medications" : active) as CollectionKey;
   }, [active]);
   const { data: session } = useSession();
-  const userId = session?.user?.email?.toLowerCase();
   const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive, userId);
   const [search, setSearch] = useState("");
 
