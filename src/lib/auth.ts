@@ -29,14 +29,14 @@ export const authOptions: NextAuthOptions = {
   pages: { signIn: "/auth/signin" },
   callbacks: {
     async jwt({ token, user }) {
-      if (user?.id) {
-        (token as any).uid = user.id;
+      if (user && (user as { id?: string }).id) {
+        return { ...token, uid: (user as { id?: string }).id } as typeof token & { uid?: string };
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && (token as any).uid) {
-        (session.user as any).id = (token as any).uid;
+      if (session.user && (token as unknown as { uid?: string }).uid) {
+        (session.user as unknown as { id?: string }).id = (token as unknown as { uid?: string }).uid;
       }
       return session;
     },

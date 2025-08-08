@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const userId = session?.user?.email ?? "guest";
   const { searchParams } = new URL(req.url);
   const collection = searchParams.get("collection") ?? undefined;
-  const where: any = { userId };
+  const where: { userId: string; collection?: string } = { userId };
   if (collection) where.collection = collection;
   const sections = await prisma.section.findMany({ where, orderBy: { updatedAt: "desc" } });
   return NextResponse.json(sections);

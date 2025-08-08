@@ -147,7 +147,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
   const updateTitle = useCallback((id: string, title: string) => updateSectionApi(id, { title }), [updateSectionApi]);
   const updateContent = useCallback((id: string, content: string) => updateSectionApi(id, { content }), [updateSectionApi]);
   const removeById = useCallback((id: string) => deleteSectionApi(id), [deleteSectionApi]);
-  return { sections: sections as any, add, updateTitle, updateContent, removeById };
+  return { sections: sections as { id: string; title: string; content: string }[], add, updateTitle, updateContent, removeById };
 }
 
 function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete }: {
