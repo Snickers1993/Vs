@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "@/components/Providers";
 import AuthButtons from "@/components/AuthButtons";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,9 +35,11 @@ export default function RootLayout({
           <div className="sticky top-0 z-40 w-full border-b bg-gradient-to-r from-emerald-50 to-teal-50">
             <div className="mx-auto max-w-7xl px-6 py-6 flex items-center justify-between gap-4">
               <Link href="/" className="flex items-center gap-4 group">
-                <img
+                <Image
                   src="/logo.png"
                   alt="VetBlurbs logo"
+                  width={432}
+                  height={108}
                   className="h-[6.75rem] w-auto"
                 />
                 <div className="leading-tight">

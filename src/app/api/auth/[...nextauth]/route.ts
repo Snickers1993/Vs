@@ -1,8 +1,8 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
-export const authOptions = {
-  session: { strategy: "jwt" as const },
+const handler = NextAuth({
+  session: { strategy: "jwt" },
   providers: [
     Credentials({
       name: "Credentials",
@@ -14,18 +14,12 @@ export const authOptions = {
         const email = credentials?.email?.toString().trim() || "";
         const password = credentials?.password?.toString() || "";
         if (!email || !password) return null;
-        // Demo-only: accept any non-empty email/password and use email as id
-        const user: { id: string; email: string } = { id: email.toLowerCase(), email };
-        return user;
+        return { id: email.toLowerCase(), email };
       },
     }),
   ],
-  pages: {
-    signIn: "/auth/signin",
-  },
-};
-
-const handler = NextAuth(authOptions);
+  pages: { signIn: "/auth/signin" },
+});
 export { handler as GET, handler as POST };
 
 
