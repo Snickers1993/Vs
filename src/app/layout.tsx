@@ -51,6 +51,11 @@ export default function RootLayout({
             </div>
           </div>
           {children}
+          <footer className="fixed inset-x-0 bottom-0 border-t bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+            <div className="mx-auto max-w-7xl px-6 py-2 text-center text-xs text-slate-600">
+              Last Updated: VetHackz Inc.  Nic Anders 9-3 TM
+            </div>
+          </footer>
         </Providers>
       </body>
     </html>

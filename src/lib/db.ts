@@ -2,6 +2,7 @@ import Dexie, { Table } from "dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 
 export type CollectionKey =
+  | "exams"
   | "medications"
   | "dischargeTemplates"
   | "diseaseTemplates"
@@ -33,6 +34,7 @@ class VetDB extends Dexie {
   sections!: Table<DbSection, string>;
   workspaceItems!: Table<WorkspaceItem, string>;
   handouts!: Table<Handout, string>;
+  scratchpads!: Table<Scratchpad, string>;
   constructor() {
     super("vet-discharge-db");
     this.version(1).stores({
@@ -44,6 +46,9 @@ class VetDB extends Dexie {
     });
     this.version(3).stores({
       handouts: "id, createdAt, name, type, size, userId",
+    });
+    this.version(4).stores({
+      scratchpads: "id, userId, updatedAt",
     });
   }
 }
@@ -187,6 +192,37 @@ export async function addHandoutFromFile(file: File, userId?: string): Promise<s
 
 export async function deleteHandout(id: string): Promise<void> {
   await db.handouts.delete(id);
+}
+
+// Scratchpad (persistent free-form text)
+export type Scratchpad = {
+  id: string; // "scratchpad:<user>"
+  userId?: string;
+  html: string;
+  updatedAt: number;
+};
+
+function scratchpadId(userId?: string): string {
+  return `scratchpad:${userId ?? "guest"}`;
+}
+
+export function useScratchpadHtml(userId?: string): string {
+  const id = scratchpadId(userId);
+  const row = useLiveQuery(async () => {
+    return (await db.scratchpads.get(id)) ?? null;
+  }, [id], null as Scratchpad | null);
+  return row?.html ?? "";
+}
+
+export async function saveScratchpadHtml(userId: string | undefined, html: string): Promise<void> {
+  const id = scratchpadId(userId);
+  const now = Date.now();
+  const existing = await db.scratchpads.get(id);
+  if (existing) {
+    await db.scratchpads.update(id, { html, updatedAt: now });
+  } else {
+    await db.scratchpads.add({ id, userId, html, updatedAt: now });
+  }
 }
 
 

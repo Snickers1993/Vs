@@ -15,7 +15,7 @@ import {
   removeWorkspaceItem,
   clearWorkspace,
 } from "@/lib/db";
-import { useHandouts, addHandoutFromFile, deleteHandout } from "@/lib/db";
+import { useHandouts, addHandoutFromFile, deleteHandout, useScratchpadHtml, saveScratchpadHtml } from "@/lib/db";
 import { useSession, signIn } from "next-auth/react";
 
 type Section = {
@@ -27,12 +27,13 @@ type Section = {
 type TabKey = CollectionKey | "fastCalculations";
 
 const DEFAULT_TABS: { key: TabKey; label: string }[] = [
-  { key: "medications", label: "Medications" },
-  { key: "dischargeTemplates", label: "Discharge" },
+  { key: "exams", label: "Exams" },
   { key: "diseaseTemplates", label: "Diseases" },
+  { key: "medications", label: "Medications" },
   { key: "recommendations", label: "Recommendations" },
-  { key: "handouts", label: "Handouts" },
   { key: "blurbs", label: "Blurbs" },
+  { key: "dischargeTemplates", label: "Discharge" },
+  { key: "handouts", label: "Handouts" },
   { key: "fastCalculations", label: "Fast Calculations" },
 ];
 
@@ -519,6 +520,13 @@ function MainWithWorkspace({
             </ul>
           </div>
         )}
+
+        <div className="rounded-xl border bg-white shadow-sm p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Scratchpad</h2>
+          </div>
+          <Scratchpad />
+        </div>
       </aside>
     </div>
   );
@@ -574,6 +582,40 @@ function HandoutsManager({ handouts }: { handouts: ReturnType<typeof useHandouts
           <li className="text-sm text-slate-600 py-6 text-center">No handouts uploaded yet.</li>
         )}
       </ul>
+    </div>
+  );
+}
+
+function Scratchpad() {
+  const { data: session } = useSession();
+  const userId = session?.user?.email?.toLowerCase();
+  const html = useScratchpadHtml(userId);
+  const [value, setValue] = useState(html);
+
+  // Sync when IndexedDB loads
+  React.useEffect(() => {
+    setValue(html);
+  }, [html]);
+
+  const editor = useEditor({
+    extensions: [StarterKit, Underline, Link.configure({ openOnClick: false }), Placeholder.configure({ placeholder: "Type here…" })],
+    content: value || "",
+    immediatelyRender: false,
+    onUpdate: ({ editor }) => {
+      const next = editor.getHTML();
+      setValue(next);
+      // Save debounced-like
+      saveScratchpadHtml(userId, next);
+    },
+    editorProps: { attributes: { class: "prose prose-sm max-w-none p-3 min-h-[160px] focus:outline-none" } },
+  });
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-slate-600">Free-form notes. Auto-saves to this device.</div>
+      <div className="border rounded-md bg-white shadow-sm">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }
