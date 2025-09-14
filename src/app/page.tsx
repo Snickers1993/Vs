@@ -876,6 +876,12 @@ function SharedBlurbsManager() {
   const [search, setSearch] = useState("");
   const [sharedSections, setSharedSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const userId = session?.user?.email?.toLowerCase();
+
+  // Get local public sections
+  const localSections = useSectionsByCollection("blurbs", userId);
+  const localPublicSections = localSections.filter(s => s.isPublic);
 
   // Fetch shared sections from API
   React.useEffect(() => {
@@ -896,14 +902,17 @@ function SharedBlurbsManager() {
   }, []);
 
   const filteredSections = useMemo(() => {
-    if (!search.trim()) return sharedSections;
+    // Combine server and local public sections
+    const allPublicSections = [...sharedSections, ...localPublicSections];
+    
+    if (!search.trim()) return allPublicSections;
     const q = search.toLowerCase();
-    return sharedSections.filter((s) => {
+    return allPublicSections.filter((s) => {
       const title = s.title?.toLowerCase() ?? "";
       const contentText = htmlToPlainText(s.content).toLowerCase();
       return title.includes(q) || contentText.includes(q);
     });
-  }, [sharedSections, search]);
+  }, [sharedSections, localPublicSections, search]);
 
   const handleCopy = async (title: string, html: string) => {
     try {
