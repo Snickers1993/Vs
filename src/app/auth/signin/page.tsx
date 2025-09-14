@@ -15,30 +15,23 @@ export default function SignInPage() {
     setError(null);
     setSuccess(false);
     
-    try {
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      
-      console.log("Sign in response:", res);
-      
-      // Check if authentication was successful
-      // NextAuth returns { error: string } on failure, { ok: true, url: string } on success
-      if (res?.error) {
-        console.log("Error found:", res.error);
-        setError("Invalid credentials");
-      } else {
-        // If no error, authentication was successful
-        console.log("Authentication successful");
-        setSuccess(true);
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1500);
-      }
-    } catch (error) {
-      console.log("Sign in error:", error);
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+    
+    console.log("Sign in response:", res);
+    
+    // NextAuth returns { error: null } on success, { error: string } on failure
+    if (res?.error === null) {
+      // Success - no error
+      setSuccess(true);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
+    } else {
+      // Failure - has error
       setError("Invalid credentials");
     }
   }
@@ -69,7 +62,7 @@ export default function SignInPage() {
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
-          {success && <div className="text-sm text-green-600">Successful authentication! Redirecting...</div>}
+          {success && <div className="text-sm text-green-600">Log-in successful! Redirecting...</div>}
           <button className="w-full inline-flex h-10 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-800" type="submit">
             Sign in
           </button>
