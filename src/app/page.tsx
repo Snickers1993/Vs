@@ -17,6 +17,7 @@ import {
 } from "@/lib/db";
 import { useHandouts, addHandoutFromFile, deleteHandout, useScratchpadHtml, saveScratchpadHtml } from "@/lib/db";
 import { useSession, signIn } from "next-auth/react";
+import AuthButtons from "@/components/AuthButtons";
 
 type Section = {
   id: string;
@@ -215,9 +216,9 @@ function useCollection(collection: CollectionKey, userId?: string) {
   const { sections: serverSections, addSectionApi, updateSectionApi, deleteSectionApi, error } = useSectionsApi(collection);
   const localSections = useSectionsByCollection(collection, userId);
   
-  // Merge server and local data when authenticated, prioritize server data for conflicts
+  // Always merge local and server data when authenticated, prioritize server data for conflicts
   const sections = useMemo(() => {
-    if (!isAuthenticated || error) {
+    if (!isAuthenticated) {
       return localSections;
     }
     
@@ -244,7 +245,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
       const bTime = new Date(b.updatedAt || b.createdAt).getTime();
       return bTime - aTime;
     });
-  }, [isAuthenticated, error, serverSections, localSections]);
+  }, [isAuthenticated, serverSections, localSections]);
   
   const add = useCallback(async () => {
     if (isAuthenticated && !error) {
@@ -381,7 +382,7 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
               onChange={onTogglePublic}
               className="rounded border-gray-300"
             />
-            Make this blurb public (share with other veterinarians)
+            Public
           </label>
         </div>
       )}
@@ -502,25 +503,12 @@ export default function Home() {
 
           <div className="flex items-center gap-2">
             <button
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50"
-              onClick={() => exportAllData(userId)}
-              title="Download all data"
-            >
-              <Download size={16} /> Export
-            </button>
-            <button
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50"
-              onClick={() => importData(userId)}
-              title="Upload data backup"
-            >
-              <Upload size={16} /> Import
-            </button>
-            <button
               className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
               onClick={() => add()}
             >
               <Plus size={18} /> Add section
             </button>
+            <AuthButtons />
           </div>
         </div>
 
@@ -535,12 +523,6 @@ export default function Home() {
           </div>
         )}
 
-        {!session && (
-          <div className="mb-4 rounded-md border bg-white p-3 text-sm text-slate-700">
-            You are not signed in. Your data is stored locally in this browser. For multi-device access, please
-            <button className="ml-2 underline" onClick={() => signIn("credentials", { callbackUrl: "/" })}>sign in</button>.
-          </div>
-        )}
 
         <MainWithWorkspace
           sections={filteredSections}
@@ -553,6 +535,24 @@ export default function Home() {
           active={active}
           userId={userId}
         />
+        
+        {/* Export/Import buttons in bottom right */}
+        <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-10">
+          <button
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50 shadow-lg"
+            onClick={() => exportAllData(userId)}
+            title="Download all data"
+          >
+            <Download size={16} /> Export
+          </button>
+          <button
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50 shadow-lg"
+            onClick={() => importData(userId)}
+            title="Upload data backup"
+          >
+            <Upload size={16} /> Import
+          </button>
+        </div>
       </div>
     </div>
   );
