@@ -21,10 +21,14 @@ export default function SignInPage() {
       redirect: false,
     });
     
+    console.log("Sign in response:", res);
+    
     // If there's an error, show error message
     if (res?.error) {
+      console.log("Error found:", res.error);
       setError("Invalid credentials");
     } else {
+      console.log("No error, authentication successful");
       // If no error, authentication was successful
       setSuccess(true);
       setTimeout(() => {
