@@ -15,7 +15,11 @@ export async function PATCH(
   try {
     const updated = await prisma.section.update({
       where: { id },
-      data: { title: body.title, content: body.content },
+      data: { 
+        title: body.title, 
+        content: body.content,
+        isPublic: body.isPublic
+      },
     });
     if (updated.userId !== userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
     return NextResponse.json(updated);

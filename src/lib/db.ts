@@ -15,6 +15,7 @@ export type DbSection = {
   collection: CollectionKey;
   title: string;
   content: string;
+  isPublic?: boolean;
   createdAt: number;
   updatedAt: number;
   userId?: string;
@@ -64,7 +65,7 @@ export function useSectionsByCollection(collection: CollectionKey, userId?: stri
   return items ?? [];
 }
 
-export async function addSection(collection: CollectionKey, userId?: string): Promise<string> {
+export async function addSection(collection: CollectionKey, userId?: string, isPublic: boolean = false): Promise<string> {
   const id = crypto.randomUUID();
   const now = Date.now();
   await db.sections.add({
@@ -72,6 +73,7 @@ export async function addSection(collection: CollectionKey, userId?: string): Pr
     collection,
     title: "Untitled",
     content: "",
+    isPublic,
     createdAt: now,
     updatedAt: now,
     userId,
@@ -81,7 +83,7 @@ export async function addSection(collection: CollectionKey, userId?: string): Pr
 
 export async function updateSection(
   id: string,
-  partial: Partial<Pick<DbSection, "title" | "content" | "collection">>
+  partial: Partial<Pick<DbSection, "title" | "content" | "collection" | "isPublic">>
 ): Promise<number> {
   return db.sections.update(id, { ...partial, updatedAt: Date.now() });
 }

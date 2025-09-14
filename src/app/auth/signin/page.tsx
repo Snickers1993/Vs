@@ -8,10 +8,12 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
     const res = await signIn("credentials", {
       email,
       password,
@@ -20,7 +22,10 @@ export default function SignInPage() {
     if (res?.error) {
       setError("Invalid credentials");
     } else {
-      window.location.href = "/";
+      setSuccess(true);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
     }
   }
 
@@ -50,6 +55,7 @@ export default function SignInPage() {
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
+          {success && <div className="text-sm text-green-600">Sign in successful! Redirecting...</div>}
           <button className="w-full inline-flex h-10 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-800" type="submit">
             Sign in
           </button>

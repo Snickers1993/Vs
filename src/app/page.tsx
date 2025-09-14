@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Calculator } from "lucide-react";
+import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Calculator, Download, Upload } from "lucide-react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -22,9 +22,10 @@ type Section = {
   id: string;
   title: string;
   content: string;
+  isPublic?: boolean;
 };
 
-type TabKey = CollectionKey | "fastCalculations";
+type TabKey = CollectionKey | "fastCalculations" | "sharedBlurbs";
 
 const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "exams", label: "Exams" },
@@ -35,6 +36,7 @@ const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "dischargeTemplates", label: "Discharge" },
   { key: "handouts", label: "Handouts" },
   { key: "fastCalculations", label: "Fast Calculations" },
+  { key: "sharedBlurbs", label: "Shared Blurbs" },
 ];
 
 import type { Editor } from "@tiptap/react";
@@ -141,6 +143,70 @@ function escapeHtml(text: string): string {
     .replaceAll(/'/g, "&#039;");
 }
 
+// Data export/import functions
+async function exportAllData(userId?: string) {
+  try {
+    const allSections = await db.sections.toArray();
+    const userSections = userId ? allSections.filter(s => s.userId === userId) : allSections;
+    
+    const exportData = {
+      sections: userSections,
+      timestamp: new Date().toISOString(),
+      version: "1.0"
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vetblurbs-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Export failed:", error);
+    alert("Export failed. Please try again.");
+  }
+}
+
+async function importData(userId?: string) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+  input.onchange = async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      if (!data.sections || !Array.isArray(data.sections)) {
+        throw new Error("Invalid backup file format");
+      }
+      
+      // Import sections
+      for (const section of data.sections) {
+        await db.sections.add({
+          ...section,
+          id: crypto.randomUUID(), // Generate new ID to avoid conflicts
+          userId: userId || section.userId,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+      }
+      
+      alert(`Successfully imported ${data.sections.length} sections!`);
+      window.location.reload(); // Refresh to show imported data
+    } catch (error) {
+      console.error("Import failed:", error);
+      alert("Import failed. Please check the file format and try again.");
+    }
+  };
+  input.click();
+}
+
 function useCollection(collection: CollectionKey, userId?: string) {
   // When signed in, use server API; fallback to local storage if not
   const { data: session } = useSession();
@@ -192,6 +258,19 @@ function useCollection(collection: CollectionKey, userId?: string) {
     }
   }, [isAuthenticated, error, updateSectionApi]);
   
+  const updatePublic = useCallback(async (id: string, isPublic: boolean) => {
+    if (isAuthenticated && !error) {
+      try {
+        return await updateSectionApi(id, { isPublic });
+      } catch (err) {
+        console.warn("Server API failed, falling back to local storage");
+        return updateSection(id, { isPublic });
+      }
+    } else {
+      return updateSection(id, { isPublic });
+    }
+  }, [isAuthenticated, error, updateSectionApi]);
+  
   const removeById = useCallback(async (id: string) => {
     if (isAuthenticated && !error) {
       try {
@@ -205,16 +284,18 @@ function useCollection(collection: CollectionKey, userId?: string) {
     }
   }, [isAuthenticated, error, deleteSectionApi]);
   
-  return { sections: sections as { id: string; title: string; content: string }[], add, updateTitle, updateContent, removeById };
+  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean }[], add, updateTitle, updateContent, updatePublic, removeById };
 }
 
-function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete }: {
+function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete, onTogglePublic, isPublic }: {
   section: Section;
   onChangeTitle: (title: string) => void;
   onChangeContent: (content: string) => void;
   onCopy: () => void;
   onCopyText: () => void;
   onDelete: () => void;
+  onTogglePublic?: () => void;
+  isPublic?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState<"none" | "html" | "text">("none");
@@ -264,6 +345,19 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
           <Trash2 size={16} />
         </button>
       </div>
+      {onTogglePublic && (
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={isPublic || false}
+              onChange={onTogglePublic}
+              className="rounded border-gray-300"
+            />
+            Make this blurb public (share with other veterinarians)
+          </label>
+        </div>
+      )}
       {copied !== "none" && (
         <div className="text-xs text-green-700">{copied === "html" ? "Copied rich text" : "Copied plain text"}</div>
       )}
@@ -320,7 +414,7 @@ export default function Home() {
   }, [active]);
   const { data: session } = useSession();
   const userId = session?.user?.email?.toLowerCase();
-  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive, userId);
+  const { sections, add, updateTitle, updateContent, updatePublic, removeById } = useCollection(collectionForActive, userId);
   const [search, setSearch] = useState("");
 
   const handleCopy = async (title: string, html: string) => {
@@ -358,11 +452,16 @@ export default function Home() {
             {DEFAULT_TABS.map((t) => {
               const isActive = active === t.key;
               const isFast = t.key === "fastCalculations";
+              const isShared = t.key === "sharedBlurbs";
               const base = "px-3 py-1.5 rounded-full border";
               const cls = isFast
                 ? isActive
                   ? `${base} bg-amber-600 border-amber-700 text-white`
                   : `${base} bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100`
+                : isShared
+                ? isActive
+                  ? `${base} bg-blue-600 border-blue-700 text-white`
+                  : `${base} bg-blue-50 border-blue-300 text-blue-900 hover:bg-blue-100`
                 : isActive
                 ? `${base} bg-slate-900 text-white`
                 : `${base} bg-white hover:bg-gray-50`;
@@ -374,12 +473,28 @@ export default function Home() {
             })}
           </div>
 
-          <button
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
-            onClick={() => add()}
-          >
-            <Plus size={18} /> Add section
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50"
+              onClick={() => exportAllData(userId)}
+              title="Download all data"
+            >
+              <Download size={16} /> Export
+            </button>
+            <button
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50"
+              onClick={() => importData(userId)}
+              title="Upload data backup"
+            >
+              <Upload size={16} /> Import
+            </button>
+            <button
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
+              onClick={() => add()}
+            >
+              <Plus size={18} /> Add section
+            </button>
+          </div>
         </div>
 
         {active !== "fastCalculations" && (
@@ -404,6 +519,7 @@ export default function Home() {
           sections={filteredSections}
           updateTitle={updateTitle}
           updateContent={updateContent}
+          updatePublic={updatePublic}
           removeById={removeById}
           handleCopy={handleCopy}
           handleCopyText={handleCopyText}
@@ -419,6 +535,7 @@ function MainWithWorkspace({
   sections,
   updateTitle,
   updateContent,
+  updatePublic,
   removeById,
   handleCopy,
   handleCopyText,
@@ -428,6 +545,7 @@ function MainWithWorkspace({
   sections: Section[];
   updateTitle: (id: string, title: string) => void;
   updateContent: (id: string, html: string) => void;
+  updatePublic: (id: string, isPublic: boolean) => void;
   removeById: (id: string) => void;
   handleCopy: (title: string, html: string) => Promise<void>;
   handleCopyText: (title: string, html: string) => Promise<void>;
@@ -464,6 +582,8 @@ function MainWithWorkspace({
           <HandoutsManager handouts={handouts} />
         ) : active === "fastCalculations" ? (
           <FastCalculations />
+        ) : active === "sharedBlurbs" ? (
+          <SharedBlurbsManager />
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {sections.length === 0 && (
@@ -478,6 +598,8 @@ function MainWithWorkspace({
                   onCopy={() => handleCopy(section.title, section.content)}
                   onCopyText={() => handleCopyText(section.title, section.content)}
                   onDelete={() => removeById(section.id)}
+                  onTogglePublic={() => updatePublic(section.id, !section.isPublic)}
+                  isPublic={section.isPublic}
                 />
                 <div className="flex justify-end">
                   <button
@@ -683,6 +805,101 @@ function Scratchpad() {
       <div className="text-xs text-slate-600">Free-form notes. Auto-saves to this device.</div>
       <div className="border rounded-md bg-white shadow-sm">
         <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
+
+// Shared Blurbs Manager Component
+function SharedBlurbsManager() {
+  const [search, setSearch] = useState("");
+  const [sharedSections, setSharedSections] = useState<Section[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch shared sections from API
+  React.useEffect(() => {
+    async function fetchSharedSections() {
+      try {
+        const response = await fetch('/api/shared-sections');
+        if (response.ok) {
+          const data = await response.json();
+          setSharedSections(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch shared sections:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSharedSections();
+  }, []);
+
+  const filteredSections = useMemo(() => {
+    if (!search.trim()) return sharedSections;
+    const q = search.toLowerCase();
+    return sharedSections.filter((s) => {
+      const title = s.title?.toLowerCase() ?? "";
+      const contentText = htmlToPlainText(s.content).toLowerCase();
+      return title.includes(q) || contentText.includes(q);
+    });
+  }, [sharedSections, search]);
+
+  const handleCopy = async (title: string, html: string) => {
+    try {
+      const htmlWithHeader = `<h3 style="margin:0 0 8px 0; font-weight:600;">${escapeHtml(title)}</h3>` + html;
+      const blob = new Blob([htmlWithHeader], { type: "text/html" });
+      const item = new ClipboardItem({ "text/html": blob });
+      await navigator.clipboard.write([item]);
+    } catch {
+      await navigator.clipboard.writeText(`${title}\n\n${htmlToPlainText(html)}`);
+    }
+  };
+
+  const handleCopyText = async (title: string, html: string) => {
+    await navigator.clipboard.writeText(`${title}\n\n${htmlToPlainText(html)}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="rounded-xl border bg-white shadow-sm p-8 text-center">
+        <div className="text-slate-600">Loading shared blurbs...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border bg-white shadow-sm p-4">
+        <h2 className="text-lg font-semibold mb-3">Shared Blurbs</h2>
+        <p className="text-sm text-slate-600 mb-4">
+          Discover blurbs shared by other veterinarians. These are public blurbs that can help with common cases.
+        </p>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search shared blurbs..."
+          className="w-full rounded-md border bg-white px-3 py-2 outline-none ring-0 focus:border-slate-900"
+        />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {filteredSections.length === 0 && (
+          <div className="col-span-full text-slate-600 text-center py-8">
+            {search ? "No shared blurbs match your search." : "No shared blurbs available yet."}
+          </div>
+        )}
+        {filteredSections.map((section) => (
+          <div key={section.id} className="space-y-2">
+            <SectionCard
+              section={section}
+              onChangeTitle={() => {}} // Read-only for shared sections
+              onChangeContent={() => {}} // Read-only for shared sections
+              onCopy={() => handleCopy(section.title, section.content)}
+              onCopyText={() => handleCopyText(section.title, section.content)}
+              onDelete={() => {}} // No delete for shared sections
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

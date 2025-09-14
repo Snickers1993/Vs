@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
         collection: body.collection,
         title: body.title ?? "Untitled",
         content: body.content ?? "",
+        isPublic: body.isPublic ?? false,
       },
     });
     return NextResponse.json(created);
