@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Calculator, Download, Upload } from "lucide-react";
+import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Calculator, Download, Upload, Star } from "lucide-react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
-import { type CollectionKey, useSectionsByCollection, addSection, updateSection, deleteSection, db } from "@/lib/db";
+import { type CollectionKey, useSectionsByCollection, useStarredSections, addSection, updateSection, deleteSection, db } from "@/lib/db";
 import { useSectionsApi } from "@/lib/sections";
 import {
   useWorkspaceItems,
@@ -23,9 +23,10 @@ type Section = {
   title: string;
   content: string;
   isPublic?: boolean;
+  isStarred?: boolean;
 };
 
-type TabKey = CollectionKey | "fastCalculations" | "sharedBlurbs" | "monitoring";
+type TabKey = CollectionKey | "fastCalculations" | "sharedBlurbs" | "monitoring" | "starred";
 
 const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "exams", label: "Exams" },
@@ -38,6 +39,7 @@ const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "handouts", label: "Handouts" },
   { key: "fastCalculations", label: "Fast Calculations" },
   { key: "sharedBlurbs", label: "Shared Blurbs" },
+  { key: "starred", label: "Starred" },
 ];
 
 import type { Editor } from "@tiptap/react";
@@ -298,6 +300,19 @@ function useCollection(collection: CollectionKey, userId?: string) {
       return updateSection(id, { isPublic });
     }
   }, [isAuthenticated, error, updateSectionApi]);
+
+  const updateStarred = useCallback(async (id: string, isStarred: boolean) => {
+    if (isAuthenticated && !error) {
+      try {
+        return await updateSectionApi(id, { isStarred });
+      } catch {
+        console.warn("Server API failed, falling back to local storage");
+        return updateSection(id, { isStarred });
+      }
+    } else {
+      return updateSection(id, { isStarred });
+    }
+  }, [isAuthenticated, error, updateSectionApi]);
   
   const removeById = useCallback(async (id: string) => {
     if (isAuthenticated && !error) {
@@ -312,10 +327,10 @@ function useCollection(collection: CollectionKey, userId?: string) {
     }
   }, [isAuthenticated, error, deleteSectionApi]);
   
-  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean }[], add, updateTitle, updateContent, updatePublic, removeById };
+  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean; isStarred?: boolean }[], add, updateTitle, updateContent, updatePublic, updateStarred, removeById };
 }
 
-function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete, onTogglePublic, isPublic }: {
+function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete, onTogglePublic, onToggleStarred, isPublic, isStarred }: {
   section: Section;
   onChangeTitle: (title: string) => void;
   onChangeContent: (content: string) => void;
@@ -323,7 +338,9 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
   onCopyText: () => void;
   onDelete: () => void;
   onTogglePublic?: () => void;
+  onToggleStarred?: () => void;
   isPublic?: boolean;
+  isStarred?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState<"none" | "html" | "text">("none");
@@ -368,6 +385,18 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
           onChange={(e) => setLocalTitle(e.target.value)}
           placeholder="Title"
         />
+        {onToggleStarred && (
+          <button
+            className="p-1 rounded hover:bg-gray-100 transition-colors"
+            onClick={onToggleStarred}
+            title={isStarred ? "Remove from starred" : "Add to starred"}
+          >
+            <Star 
+              size={20} 
+              className={isStarred ? "text-yellow-500 fill-yellow-500" : "text-gray-400 hover:text-yellow-500"} 
+            />
+          </button>
+        )}
       </div>
       {copied !== "none" && (
         <div className="text-xs text-green-700">{copied === "html" ? "Copied rich text" : "Copied plain text"}</div>
@@ -463,11 +492,13 @@ export default function Home() {
   const collectionForActive: CollectionKey = useMemo(() => {
     if (active === "fastCalculations") return "medications";
     if (active === "monitoring") return "monitoring";
+    if (active === "starred") return "medications"; // Will be overridden for starred
     return active as CollectionKey;
   }, [active]);
   const { data: session } = useSession();
   const userId = session?.user?.email?.toLowerCase();
-  const { sections, add, updateTitle, updateContent, updatePublic, removeById } = useCollection(collectionForActive, userId);
+  const { sections, add, updateTitle, updateContent, updatePublic, updateStarred, removeById } = useCollection(collectionForActive, userId);
+  const starredSections = useStarredSections(userId);
   const [search, setSearch] = useState("");
 
   const handleCopy = async (title: string, html: string) => {
@@ -486,14 +517,37 @@ export default function Home() {
   };
 
   const filteredSections = useMemo(() => {
-    if (!search.trim()) return sections;
+    let sectionsToFilter = sections;
+    
+    // For starred tab, use starred sections
+    if (active === "starred") {
+      sectionsToFilter = starredSections;
+    }
+    
+    if (!search.trim()) {
+      // Sort starred sections first, then by updatedAt
+      return sectionsToFilter.sort((a, b) => {
+        if (a.isStarred && !b.isStarred) return -1;
+        if (!a.isStarred && b.isStarred) return 1;
+        const aTime = new Date(a.updatedAt || a.createdAt).getTime();
+        const bTime = new Date(b.updatedAt || b.createdAt).getTime();
+        return bTime - aTime;
+      });
+    }
+    
     const q = search.toLowerCase();
-    return sections.filter((s) => {
+    return sectionsToFilter.filter((s) => {
       const title = s.title?.toLowerCase() ?? "";
       const contentText = htmlToPlainText(s.content).toLowerCase();
       return title.includes(q) || contentText.includes(q);
+    }).sort((a, b) => {
+      if (a.isStarred && !b.isStarred) return -1;
+      if (!a.isStarred && b.isStarred) return 1;
+      const aTime = new Date(a.updatedAt || a.createdAt).getTime();
+      const bTime = new Date(b.updatedAt || b.createdAt).getTime();
+      return bTime - aTime;
     });
-  }, [sections, search]);
+  }, [sections, starredSections, search, active]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900">
@@ -506,6 +560,7 @@ export default function Home() {
               const isActive = active === t.key;
               const isFast = t.key === "fastCalculations";
               const isShared = t.key === "sharedBlurbs";
+              const isStarred = t.key === "starred";
               const base = "px-2 py-1 text-sm rounded-full border";
               const cls = isFast
                 ? isActive
@@ -515,12 +570,18 @@ export default function Home() {
                 ? isActive
                   ? `${base} bg-blue-600 border-blue-700 text-white`
                   : `${base} bg-blue-50 border-blue-300 text-blue-900 hover:bg-blue-100`
+                : isStarred
+                ? isActive
+                  ? `${base} bg-yellow-600 border-yellow-700 text-white`
+                  : `${base} bg-yellow-50 border-yellow-300 text-yellow-900 hover:bg-yellow-100`
                 : isActive
                 ? `${base} bg-slate-900 text-white`
                 : `${base} bg-white hover:bg-gray-50`;
               return (
                 <button key={t.key} className={cls} onClick={() => setActive(t.key)}>
-                  {isFast && <Calculator size={16} className="mr-1 inline" />} {t.label}
+                  {isFast && <Calculator size={16} className="mr-1 inline" />}
+                  {isStarred && <Star size={16} className="mr-1 inline" />}
+                  {t.label}
                 </button>
               );
             })}
@@ -536,7 +597,7 @@ export default function Home() {
           </div>
         </div>
 
-        {active !== "fastCalculations" && active !== "monitoring" && (
+        {active !== "fastCalculations" && active !== "monitoring" && active !== "starred" && (
           <div className="mb-3">
             <input
               value={search}
@@ -552,6 +613,7 @@ export default function Home() {
           updateTitle={updateTitle}
           updateContent={updateContent}
           updatePublic={updatePublic}
+          updateStarred={updateStarred}
           removeById={removeById}
           handleCopy={handleCopy}
           handleCopyText={handleCopyText}
@@ -593,6 +655,7 @@ function MainWithWorkspace({
   updateTitle,
   updateContent,
   updatePublic,
+  updateStarred,
   removeById,
   handleCopy,
   handleCopyText,
@@ -603,6 +666,7 @@ function MainWithWorkspace({
   updateTitle: (id: string, title: string) => void;
   updateContent: (id: string, html: string) => void;
   updatePublic: (id: string, isPublic: boolean) => void;
+  updateStarred: (id: string, isStarred: boolean) => void;
   removeById: (id: string) => void;
   handleCopy: (title: string, html: string) => Promise<void>;
   handleCopyText: (title: string, html: string) => Promise<void>;
@@ -656,7 +720,9 @@ function MainWithWorkspace({
                   onCopyText={() => handleCopyText(section.title, section.content)}
                   onDelete={() => removeById(section.id)}
                   onTogglePublic={() => updatePublic(section.id, !section.isPublic)}
+                  onToggleStarred={() => updateStarred(section.id, !section.isStarred)}
                   isPublic={section.isPublic}
+                  isStarred={section.isStarred}
                 />
                 <div className="flex justify-end">
                   <button

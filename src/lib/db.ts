@@ -17,6 +17,7 @@ export type DbSection = {
   title: string;
   content: string;
   isPublic?: boolean;
+  isStarred?: boolean;
   createdAt: number;
   updatedAt: number;
   userId?: string;
@@ -66,6 +67,15 @@ export function useSectionsByCollection(collection: CollectionKey, userId?: stri
   return items ?? [];
 }
 
+export function useStarredSections(userId?: string): DbSection[] {
+  const items = useLiveQuery(async () => {
+    let rows = await db.sections.where("isStarred").equals(true).toArray();
+    if (userId) rows = rows.filter((r) => r.userId === userId);
+    return rows.sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [userId], [] as DbSection[]);
+  return items ?? [];
+}
+
 export async function addSection(collection: CollectionKey, userId?: string, isPublic: boolean = false): Promise<string> {
   const id = crypto.randomUUID();
   const now = Date.now();
@@ -84,7 +94,7 @@ export async function addSection(collection: CollectionKey, userId?: string, isP
 
 export async function updateSection(
   id: string,
-  partial: Partial<Pick<DbSection, "title" | "content" | "collection" | "isPublic">>
+  partial: Partial<Pick<DbSection, "title" | "content" | "collection" | "isPublic" | "isStarred">>
 ): Promise<number> {
   return db.sections.update(id, { ...partial, updatedAt: Date.now() });
 }

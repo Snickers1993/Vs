@@ -69,12 +69,14 @@ model Section {
   title       String
   content     String
   isPublic    Boolean  @default(false)
+  isStarred   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, collection])
   @@index([isPublic])
+  @@index([isStarred])
 }
 
 

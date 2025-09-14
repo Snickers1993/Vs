@@ -7,6 +7,7 @@ export type SectionDto = {
   title: string;
   content: string;
   isPublic?: boolean;
+  isStarred?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -28,7 +29,7 @@ export function useSectionsApi(collection?: string) {
   const key = collection ? `/api/sections?collection=${encodeURIComponent(collection)}` : "/api/sections";
   const { data, error, mutate, isLoading } = useSWR<SectionDto[]>(key, fetcher);
 
-  async function addSectionApi(partial: { collection: string; title?: string; content?: string; isPublic?: boolean }) {
+  async function addSectionApi(partial: { collection: string; title?: string; content?: string; isPublic?: boolean; isStarred?: boolean }) {
     const res = await fetch("/api/sections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,7 +46,7 @@ export function useSectionsApi(collection?: string) {
     return json as SectionDto;
   }
 
-  async function updateSectionApi(id: string, partial: { title?: string; content?: string; isPublic?: boolean }) {
+  async function updateSectionApi(id: string, partial: { title?: string; content?: string; isPublic?: boolean; isStarred?: boolean }) {
     const res = await fetch(`/api/sections/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
