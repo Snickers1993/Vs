@@ -327,8 +327,25 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState<"none" | "html" | "text">("none");
+  const [localTitle, setLocalTitle] = useState(section.title);
+
+  // Update local title when section title changes from external source
+  React.useEffect(() => {
+    setLocalTitle(section.title);
+  }, [section.title]);
 
   const previewText = useMemo(() => htmlToPlainText(section.content).trim(), [section.content]);
+
+  // Debounced title update
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (localTitle !== section.title) {
+        onChangeTitle(localTitle);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timeoutId);
+  }, [localTitle, section.title, onChangeTitle]);
 
   const handleCopyHtml = async () => {
     await onCopy();
@@ -347,8 +364,8 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
       <div className="flex items-center gap-2">
         <input
           className="flex-1 min-w-0 bg-transparent outline-none text-lg font-semibold px-2 h-9 rounded hover:bg-gray-50 focus:bg-gray-50"
-          value={section.title}
-          onChange={(e) => onChangeTitle(e.target.value)}
+          value={localTitle}
+          onChange={(e) => setLocalTitle(e.target.value)}
           placeholder="Title"
         />
       </div>
