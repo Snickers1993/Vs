@@ -31,13 +31,13 @@ const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "exams", label: "Exams" },
   { key: "diseaseTemplates", label: "Diseases" },
   { key: "medications", label: "Medications" },
+  { key: "monitoring", label: "Monitoring" },
   { key: "recommendations", label: "Recommendations" },
   { key: "blurbs", label: "Blurbs" },
   { key: "dischargeTemplates", label: "Discharge" },
   { key: "handouts", label: "Handouts" },
   { key: "fastCalculations", label: "Fast Calculations" },
   { key: "sharedBlurbs", label: "Shared Blurbs" },
-  { key: "monitoring", label: "Monitoring" },
 ];
 
 import type { Editor } from "@tiptap/react";
@@ -344,48 +344,14 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
 
   return (
     <div className="rounded-xl border bg-gradient-to-br from-white to-gray-50 shadow-sm p-4 space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
         <input
           className="flex-1 min-w-0 bg-transparent outline-none text-lg font-semibold px-2 h-9 rounded hover:bg-gray-50 focus:bg-gray-50"
           value={section.title}
           onChange={(e) => onChangeTitle(e.target.value)}
           placeholder="Title"
         />
-        <button
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
-          onClick={handleCopyHtml}
-          title="Copy to clipboard"
-        >
-          <Copy size={16} /> Copy
-        </button>
-        <button
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
-          onClick={handleCopyText}
-          title="Copy as plain text"
-        >
-          Plain
-        </button>
-        <button
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-3 text-sm hover:bg-red-50 text-red-600"
-          onClick={onDelete}
-          title="Delete"
-        >
-          <Trash2 size={16} />
-        </button>
       </div>
-      {onTogglePublic && (
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={isPublic || false}
-              onChange={onTogglePublic}
-              className="rounded border-gray-300"
-            />
-            Public
-          </label>
-        </div>
-      )}
       {copied !== "none" && (
         <div className="text-xs text-green-700">{copied === "html" ? "Copied rich text" : "Copied plain text"}</div>
       )}
@@ -431,6 +397,46 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
           </div>
         </div>
       )}
+
+      {/* Bottom section with buttons and checkbox */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-200">
+        <div className="flex items-center gap-4">
+          {onTogglePublic && (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={isPublic || false}
+                onChange={onTogglePublic}
+                className="rounded border-gray-300"
+              />
+              Public
+            </label>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border bg-white px-2 text-xs hover:bg-gray-50"
+            onClick={handleCopyHtml}
+            title="Copy to clipboard"
+          >
+            <Copy size={14} /> Copy
+          </button>
+          <button
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border bg-white px-2 text-xs hover:bg-gray-50"
+            onClick={handleCopyText}
+            title="Copy as plain text"
+          >
+            Plain
+          </button>
+          <button
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-xs hover:bg-red-50 text-red-600"
+            onClick={onDelete}
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -481,7 +487,6 @@ export default function Home() {
               const isActive = active === t.key;
               const isFast = t.key === "fastCalculations";
               const isShared = t.key === "sharedBlurbs";
-              const isMonitoring = t.key === "monitoring";
               const base = "px-2 py-1 text-sm rounded-full border";
               const cls = isFast
                 ? isActive
@@ -491,10 +496,6 @@ export default function Home() {
                 ? isActive
                   ? `${base} bg-blue-600 border-blue-700 text-white`
                   : `${base} bg-blue-50 border-blue-300 text-blue-900 hover:bg-blue-100`
-                : isMonitoring
-                ? isActive
-                  ? `${base} bg-green-600 border-green-700 text-white`
-                  : `${base} bg-green-50 border-green-300 text-green-900 hover:bg-green-100`
                 : isActive
                 ? `${base} bg-slate-900 text-white`
                 : `${base} bg-white hover:bg-gray-50`;
