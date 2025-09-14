@@ -215,9 +215,36 @@ function useCollection(collection: CollectionKey, userId?: string) {
   const { sections: serverSections, addSectionApi, updateSectionApi, deleteSectionApi, error } = useSectionsApi(collection);
   const localSections = useSectionsByCollection(collection, userId);
   
-  // Use server data if authenticated and no error and we have data, otherwise use local data
-  const hasServerData = isAuthenticated && !error && serverSections.length > 0;
-  const sections = hasServerData ? serverSections : localSections;
+  // Merge server and local data when authenticated, prioritize server data for conflicts
+  const sections = useMemo(() => {
+    if (!isAuthenticated || error) {
+      return localSections;
+    }
+    
+    // Create a map of server sections by ID for quick lookup
+    const serverMap = new Map(serverSections.map(s => [s.id, s]));
+    
+    // Start with local sections and update with server data where available
+    const mergedSections = localSections.map(localSection => {
+      const serverSection = serverMap.get(localSection.id);
+      if (serverSection) {
+        // Server data takes precedence, remove from map to avoid duplicates
+        serverMap.delete(localSection.id);
+        return serverSection;
+      }
+      return localSection;
+    });
+    
+    // Add any remaining server sections that weren't in local data
+    const remainingServerSections = Array.from(serverMap.values());
+    
+    // Combine and sort by updatedAt
+    return [...mergedSections, ...remainingServerSections].sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.createdAt).getTime();
+      const bTime = new Date(b.updatedAt || b.createdAt).getTime();
+      return bTime - aTime;
+    });
+  }, [isAuthenticated, error, serverSections, localSections]);
   
   const add = useCallback(async () => {
     if (isAuthenticated && !error) {
