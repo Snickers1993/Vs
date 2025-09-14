@@ -22,16 +22,24 @@ export default function SignInPage() {
     });
     
     console.log("Sign in response:", res);
+    console.log("Response type:", typeof res);
+    console.log("Error value:", res?.error);
+    console.log("Error type:", typeof res?.error);
+    console.log("Error === null:", res?.error === null);
+    console.log("Error === undefined:", res?.error === undefined);
+    console.log("Truthy check:", !!res?.error);
     
-    // NextAuth returns { error: null } on success, { error: string } on failure
-    if (res?.error === null) {
-      // Success - no error
+    // Check for success - NextAuth can return different response structures
+    if (res?.error === null || res?.error === undefined || res?.ok === true) {
+      // Success
+      console.log("SUCCESS: Authentication successful");
       setSuccess(true);
       setTimeout(() => {
         window.location.href = "/";
       }, 1500);
     } else {
-      // Failure - has error
+      // Failure
+      console.log("FAILURE: Authentication failed");
       setError("Invalid credentials");
     }
   }
