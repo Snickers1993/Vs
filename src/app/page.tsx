@@ -17,7 +17,6 @@ import {
 } from "@/lib/db";
 import { useHandouts, addHandoutFromFile, deleteHandout, useScratchpadHtml, saveScratchpadHtml } from "@/lib/db";
 import { useSession, signIn } from "next-auth/react";
-import AuthButtons from "@/components/AuthButtons";
 
 type Section = {
   id: string;
@@ -508,7 +507,6 @@ export default function Home() {
             >
               <Plus size={18} /> Add section
             </button>
-            <AuthButtons />
           </div>
         </div>
 
