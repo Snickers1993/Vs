@@ -11,12 +11,18 @@ export async function PATCH(
   const session = await getServerSession(authOptions);
   const userId = session?.user?.email ?? "guest";
   const body = await req.json();
-  const updated = await prisma.section.update({
-    where: { id },
-    data: { title: body.title, content: body.content },
-  });
-  if (updated.userId !== userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  return NextResponse.json(updated);
+  
+  try {
+    const updated = await prisma.section.update({
+      where: { id },
+      data: { title: body.title, content: body.content },
+    });
+    if (updated.userId !== userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.warn("Database not available, returning error");
+    return NextResponse.json({ error: "Database not available" }, { status: 503 });
+  }
 }
 
 export async function DELETE(
@@ -26,10 +32,16 @@ export async function DELETE(
   const { id } = await context.params;
   const session = await getServerSession(authOptions);
   const userId = session?.user?.email ?? "guest";
-  const existing = await prisma.section.findUnique({ where: { id } });
-  if (!existing || existing.userId !== userId) return NextResponse.json({ error: "not found" }, { status: 404 });
-  await prisma.section.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  
+  try {
+    const existing = await prisma.section.findUnique({ where: { id } });
+    if (!existing || existing.userId !== userId) return NextResponse.json({ error: "not found" }, { status: 404 });
+    await prisma.section.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.warn("Database not available, returning error");
+    return NextResponse.json({ error: "Database not available" }, { status: 503 });
+  }
 }
 
 

@@ -16,9 +16,9 @@ export async function GET(req: NextRequest) {
     const sections = await prisma.section.findMany({ where, orderBy: { updatedAt: "desc" } });
     return NextResponse.json(sections);
   } catch (error) {
-    // If database is not available, return empty array
-    console.warn("Database not available, returning empty sections");
-    return NextResponse.json([]);
+    // If database is not available, return error status
+    console.warn("Database not available, returning error");
+    return NextResponse.json({ error: "Database not available" }, { status: 503 });
   }
 }
 
@@ -38,17 +38,9 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(created);
   } catch (error) {
-    // If database is not available, return a mock response
-    console.warn("Database not available, returning mock section");
-    return NextResponse.json({
-      id: `mock-${Date.now()}`,
-      userId,
-      collection: body.collection,
-      title: body.title ?? "Untitled",
-      content: body.content ?? "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    // If database is not available, return error status
+    console.warn("Database not available, returning error");
+    return NextResponse.json({ error: "Database not available" }, { status: 503 });
   }
 }
 

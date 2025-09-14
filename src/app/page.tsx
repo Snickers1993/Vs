@@ -149,12 +149,18 @@ function useCollection(collection: CollectionKey, userId?: string) {
   const { sections: serverSections, addSectionApi, updateSectionApi, deleteSectionApi, error } = useSectionsApi(collection);
   const localSections = useSectionsByCollection(collection, userId);
   
-  // Use server data if authenticated and no error, otherwise use local data
-  const sections = isAuthenticated && !error ? serverSections : localSections;
+  // Use server data if authenticated and no error and we have data, otherwise use local data
+  const hasServerData = isAuthenticated && !error && serverSections.length > 0;
+  const sections = hasServerData ? serverSections : localSections;
   
   const add = useCallback(async () => {
     if (isAuthenticated && !error) {
-      return addSectionApi({ collection });
+      try {
+        return await addSectionApi({ collection });
+      } catch (err) {
+        console.warn("Server API failed, falling back to local storage");
+        return addSection(collection, userId);
+      }
     } else {
       return addSection(collection, userId);
     }
@@ -162,7 +168,12 @@ function useCollection(collection: CollectionKey, userId?: string) {
   
   const updateTitle = useCallback(async (id: string, title: string) => {
     if (isAuthenticated && !error) {
-      return updateSectionApi(id, { title });
+      try {
+        return await updateSectionApi(id, { title });
+      } catch (err) {
+        console.warn("Server API failed, falling back to local storage");
+        return updateSection(id, { title });
+      }
     } else {
       return updateSection(id, { title });
     }
@@ -170,7 +181,12 @@ function useCollection(collection: CollectionKey, userId?: string) {
   
   const updateContent = useCallback(async (id: string, content: string) => {
     if (isAuthenticated && !error) {
-      return updateSectionApi(id, { content });
+      try {
+        return await updateSectionApi(id, { content });
+      } catch (err) {
+        console.warn("Server API failed, falling back to local storage");
+        return updateSection(id, { content });
+      }
     } else {
       return updateSection(id, { content });
     }
@@ -178,7 +194,12 @@ function useCollection(collection: CollectionKey, userId?: string) {
   
   const removeById = useCallback(async (id: string) => {
     if (isAuthenticated && !error) {
-      return deleteSectionApi(id);
+      try {
+        return await deleteSectionApi(id);
+      } catch (err) {
+        console.warn("Server API failed, falling back to local storage");
+        return deleteSection(id);
+      }
     } else {
       return deleteSection(id);
     }
@@ -264,18 +285,29 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          className="relative w-full text-left border rounded-md bg-white p-3 text-sm text-slate-700 max-h-24 overflow-hidden hover:bg-gray-50"
-          onClick={() => setExpanded(true)}
-          title="Click to expand"
-        >
-          {previewText ? previewText : "Click to add content…"}
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
-          <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-600 text-xs bg-white/80 px-2 py-0.5 rounded">
-            Expand <ChevronDown size={14} />
+        <div className="space-y-2">
+          <button
+            type="button"
+            className="relative w-full text-left border rounded-md bg-white p-3 text-sm text-slate-700 max-h-24 overflow-hidden hover:bg-gray-50"
+            onClick={() => setExpanded(true)}
+            title="Click to expand"
+          >
+            {previewText ? previewText : "Click to add content…"}
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
+            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-600 text-xs bg-white/80 px-2 py-0.5 rounded">
+              Expand <ChevronDown size={14} />
+            </div>
+          </button>
+          <div className="flex justify-end">
+            <button
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-gray-50 text-xs"
+              onClick={() => setExpanded(true)}
+              title="Edit content"
+            >
+              Edit
+            </button>
           </div>
-        </button>
+        </div>
       )}
     </div>
   );
