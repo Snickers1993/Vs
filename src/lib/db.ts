@@ -8,7 +8,8 @@ export type CollectionKey =
   | "diseaseTemplates"
   | "recommendations"
   | "handouts"
-  | "blurbs";
+  | "blurbs"
+  | "monitoring";
 
 export type DbSection = {
   id: string;

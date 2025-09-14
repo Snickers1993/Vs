@@ -444,7 +444,9 @@ function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyTe
 export default function Home() {
   const [active, setActive] = useState<TabKey>("medications");
   const collectionForActive: CollectionKey = useMemo(() => {
-    return (active === "fastCalculations" ? "medications" : active) as CollectionKey;
+    if (active === "fastCalculations") return "medications";
+    if (active === "monitoring") return "monitoring";
+    return active as CollectionKey;
   }, [active]);
   const { data: session } = useSession();
   const userId = session?.user?.email?.toLowerCase();
@@ -622,8 +624,6 @@ function MainWithWorkspace({
           <FastCalculations />
         ) : active === "sharedBlurbs" ? (
           <SharedBlurbsManager />
-        ) : active === "monitoring" ? (
-          <MonitoringManager />
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {sections.length === 0 && (
@@ -1000,143 +1000,6 @@ function SharedBlurbsManager() {
   );
 }
 
-// Monitoring Manager Component
-function MonitoringManager() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [notes, setNotes] = useState("");
-  const [vitals, setVitals] = useState({
-    temperature: "",
-    heartRate: "",
-    respiratoryRate: "",
-    weight: "",
-    bloodPressure: "",
-    oxygenSaturation: ""
-  });
-
-  const handleVitalChange = (key: string, value: string) => {
-    setVitals(prev => ({ ...prev, [key]: value }));
-  };
-
-  const saveMonitoringData = () => {
-    // In a real app, this would save to a database
-    console.log("Saving monitoring data:", { selectedDate, vitals, notes });
-    alert("Monitoring data saved!");
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="rounded-xl border bg-white shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">Patient Monitoring</h2>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full rounded-md border px-3 py-2"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-            <input
-              type="number"
-              step="0.1"
-              value={vitals.weight}
-              onChange={(e) => handleVitalChange('weight', e.target.value)}
-              placeholder="Enter weight"
-              className="w-full rounded-md border px-3 py-2"
-            />
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mt-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Temperature (°F)</label>
-            <input
-              type="number"
-              step="0.1"
-              value={vitals.temperature}
-              onChange={(e) => handleVitalChange('temperature', e.target.value)}
-              placeholder="Enter temperature"
-              className="w-full rounded-md border px-3 py-2"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Heart Rate (bpm)</label>
-            <input
-              type="number"
-              value={vitals.heartRate}
-              onChange={(e) => handleVitalChange('heartRate', e.target.value)}
-              placeholder="Enter heart rate"
-              className="w-full rounded-md border px-3 py-2"
-            />
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mt-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Respiratory Rate (bpm)</label>
-            <input
-              type="number"
-              value={vitals.respiratoryRate}
-              onChange={(e) => handleVitalChange('respiratoryRate', e.target.value)}
-              placeholder="Enter respiratory rate"
-              className="w-full rounded-md border px-3 py-2"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Blood Pressure (mmHg)</label>
-            <input
-              type="text"
-              value={vitals.bloodPressure}
-              onChange={(e) => handleVitalChange('bloodPressure', e.target.value)}
-              placeholder="e.g., 120/80"
-              className="w-full rounded-md border px-3 py-2"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Oxygen Saturation (%)</label>
-          <input
-            type="number"
-            min="0"
-            max="100"
-            value={vitals.oxygenSaturation}
-            onChange={(e) => handleVitalChange('oxygenSaturation', e.target.value)}
-            placeholder="Enter oxygen saturation"
-            className="w-full md:w-1/2 rounded-md border px-3 py-2"
-          />
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Enter monitoring notes..."
-            rows={4}
-            className="w-full rounded-md border px-3 py-2"
-          />
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={saveMonitoringData}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            Save Monitoring Data
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 type Unit = "mg/kg" | "mcg/kg" | "mL/kg";
 
