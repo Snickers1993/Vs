@@ -29,16 +29,9 @@ export default function SignInPage() {
       if (res?.error) {
         console.log("Error found:", res.error);
         setError("Invalid credentials");
-      } else if (res?.ok || res?.url) {
-        console.log("Authentication successful");
-        setSuccess(true);
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1500);
       } else {
-        // If no error but also no success indicators, check if we can access the app
-        console.log("Unclear response, checking authentication status");
-        // Try to redirect anyway since you mentioned authentication is working
+        // If no error, authentication was successful
+        console.log("Authentication successful");
         setSuccess(true);
         setTimeout(() => {
           window.location.href = "/";
@@ -76,7 +69,7 @@ export default function SignInPage() {
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
-          {success && <div className="text-sm text-green-600">Log-in Successful! Redirecting...</div>}
+          {success && <div className="text-sm text-green-600">Successful authentication! Redirecting...</div>}
           <button className="w-full inline-flex h-10 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-800" type="submit">
             Sign in
           </button>

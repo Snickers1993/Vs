@@ -877,9 +877,21 @@ function SharedBlurbsManager() {
   const { data: session } = useSession();
   const userId = session?.user?.email?.toLowerCase();
 
-  // Get local public sections
-  const localSections = useSectionsByCollection("blurbs", userId);
-  const localPublicSections = localSections.filter(s => s.isPublic);
+  // Get local public sections from ALL collections
+  const [localPublicSections, setLocalPublicSections] = useState<Section[]>([]);
+  
+  React.useEffect(() => {
+    async function fetchAllLocalPublicSections() {
+      try {
+        const allSections = await db.sections.toArray();
+        const publicSections = allSections.filter(s => s.isPublic);
+        setLocalPublicSections(publicSections);
+      } catch (error) {
+        console.error('Failed to fetch local public sections:', error);
+      }
+    }
+    fetchAllLocalPublicSections();
+  }, []);
 
   // Fetch shared sections from API
   React.useEffect(() => {
