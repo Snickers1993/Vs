@@ -25,7 +25,7 @@ type Section = {
   isPublic?: boolean;
 };
 
-type TabKey = CollectionKey | "fastCalculations" | "sharedBlurbs";
+type TabKey = CollectionKey | "fastCalculations" | "sharedBlurbs" | "monitoring";
 
 const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "exams", label: "Exams" },
@@ -37,6 +37,7 @@ const DEFAULT_TABS: { key: TabKey; label: string }[] = [
   { key: "handouts", label: "Handouts" },
   { key: "fastCalculations", label: "Fast Calculations" },
   { key: "sharedBlurbs", label: "Shared Blurbs" },
+  { key: "monitoring", label: "Monitoring" },
 ];
 
 import type { Editor } from "@tiptap/react";
@@ -480,7 +481,8 @@ export default function Home() {
               const isActive = active === t.key;
               const isFast = t.key === "fastCalculations";
               const isShared = t.key === "sharedBlurbs";
-              const base = "px-3 py-1.5 rounded-full border";
+              const isMonitoring = t.key === "monitoring";
+              const base = "px-2 py-1 text-sm rounded-full border";
               const cls = isFast
                 ? isActive
                   ? `${base} bg-amber-600 border-amber-700 text-white`
@@ -489,6 +491,10 @@ export default function Home() {
                 ? isActive
                   ? `${base} bg-blue-600 border-blue-700 text-white`
                   : `${base} bg-blue-50 border-blue-300 text-blue-900 hover:bg-blue-100`
+                : isMonitoring
+                ? isActive
+                  ? `${base} bg-green-600 border-green-700 text-white`
+                  : `${base} bg-green-50 border-green-300 text-green-900 hover:bg-green-100`
                 : isActive
                 ? `${base} bg-slate-900 text-white`
                 : `${base} bg-white hover:bg-gray-50`;
@@ -510,7 +516,7 @@ export default function Home() {
           </div>
         </div>
 
-        {active !== "fastCalculations" && (
+        {active !== "fastCalculations" && active !== "monitoring" && (
           <div className="mb-3">
             <input
               value={search}
@@ -520,7 +526,6 @@ export default function Home() {
             />
           </div>
         )}
-
 
         <MainWithWorkspace
           sections={filteredSections}
@@ -534,23 +539,30 @@ export default function Home() {
           userId={userId}
         />
         
-        {/* Export/Import buttons in bottom right */}
-        <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
-          <button
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50 shadow-lg"
-            onClick={() => exportAllData(userId)}
-            title="Download all data"
-          >
-            <Download size={16} /> Export
-          </button>
-          <button
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white hover:bg-gray-50 shadow-lg"
-            onClick={() => importData(userId)}
-            title="Upload data backup"
-          >
-            <Upload size={16} /> Import
-          </button>
-        </div>
+        {/* Footer with Export/Import buttons */}
+        <footer className="mt-8 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              VetBlurbs - Veterinary Practice Management
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
+                onClick={() => exportAllData(userId)}
+                title="Download all data"
+              >
+                <Download size={14} /> Export
+              </button>
+              <button
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
+                onClick={() => importData(userId)}
+                title="Upload data backup"
+              >
+                <Upload size={14} /> Import
+              </button>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
@@ -609,6 +621,8 @@ function MainWithWorkspace({
           <FastCalculations />
         ) : active === "sharedBlurbs" ? (
           <SharedBlurbsManager />
+        ) : active === "monitoring" ? (
+          <MonitoringManager />
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {sections.length === 0 && (
@@ -980,6 +994,144 @@ function SharedBlurbsManager() {
             />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Monitoring Manager Component
+function MonitoringManager() {
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [notes, setNotes] = useState("");
+  const [vitals, setVitals] = useState({
+    temperature: "",
+    heartRate: "",
+    respiratoryRate: "",
+    weight: "",
+    bloodPressure: "",
+    oxygenSaturation: ""
+  });
+
+  const handleVitalChange = (key: string, value: string) => {
+    setVitals(prev => ({ ...prev, [key]: value }));
+  };
+
+  const saveMonitoringData = () => {
+    // In a real app, this would save to a database
+    console.log("Saving monitoring data:", { selectedDate, vitals, notes });
+    alert("Monitoring data saved!");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border bg-white shadow-sm p-6">
+        <h2 className="text-xl font-semibold mb-4">Patient Monitoring</h2>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={vitals.weight}
+              onChange={(e) => handleVitalChange('weight', e.target.value)}
+              placeholder="Enter weight"
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Temperature (°F)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={vitals.temperature}
+              onChange={(e) => handleVitalChange('temperature', e.target.value)}
+              placeholder="Enter temperature"
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Heart Rate (bpm)</label>
+            <input
+              type="number"
+              value={vitals.heartRate}
+              onChange={(e) => handleVitalChange('heartRate', e.target.value)}
+              placeholder="Enter heart rate"
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Respiratory Rate (bpm)</label>
+            <input
+              type="number"
+              value={vitals.respiratoryRate}
+              onChange={(e) => handleVitalChange('respiratoryRate', e.target.value)}
+              placeholder="Enter respiratory rate"
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Blood Pressure (mmHg)</label>
+            <input
+              type="text"
+              value={vitals.bloodPressure}
+              onChange={(e) => handleVitalChange('bloodPressure', e.target.value)}
+              placeholder="e.g., 120/80"
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Oxygen Saturation (%)</label>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            value={vitals.oxygenSaturation}
+            onChange={(e) => handleVitalChange('oxygenSaturation', e.target.value)}
+            placeholder="Enter oxygen saturation"
+            className="w-full md:w-1/2 rounded-md border px-3 py-2"
+          />
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Enter monitoring notes..."
+            rows={4}
+            className="w-full rounded-md border px-3 py-2"
+          />
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={saveMonitoringData}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            Save Monitoring Data
+          </button>
+        </div>
       </div>
     </div>
   );
