@@ -14,14 +14,18 @@ export default function SignInPage() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+    
     const res = await signIn("credentials", {
       email,
       password,
       redirect: false,
     });
+    
+    // If there's an error, show error message
     if (res?.error) {
       setError("Invalid credentials");
     } else {
+      // If no error, authentication was successful
       setSuccess(true);
       setTimeout(() => {
         window.location.href = "/";
@@ -55,7 +59,7 @@ export default function SignInPage() {
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
-          {success && <div className="text-sm text-green-600">Sign in successful! Redirecting...</div>}
+          {success && <div className="text-sm text-green-600">Log-in Successful! Redirecting...</div>}
           <button className="w-full inline-flex h-10 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-800" type="submit">
             Sign in
           </button>
