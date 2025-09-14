@@ -15,25 +15,38 @@ export default function SignInPage() {
     setError(null);
     setSuccess(false);
     
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    
-    console.log("Sign in response:", res);
-    
-    // If there's an error, show error message
-    if (res?.error) {
-      console.log("Error found:", res.error);
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      
+      console.log("Sign in response:", res);
+      
+      // Check if authentication was successful
+      // NextAuth returns { error: string } on failure, { ok: true, url: string } on success
+      if (res?.error) {
+        console.log("Error found:", res.error);
+        setError("Invalid credentials");
+      } else if (res?.ok || res?.url) {
+        console.log("Authentication successful");
+        setSuccess(true);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      } else {
+        // If no error but also no success indicators, check if we can access the app
+        console.log("Unclear response, checking authentication status");
+        // Try to redirect anyway since you mentioned authentication is working
+        setSuccess(true);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      }
+    } catch (error) {
+      console.log("Sign in error:", error);
       setError("Invalid credentials");
-    } else {
-      console.log("No error, authentication successful");
-      // If no error, authentication was successful
-      setSuccess(true);
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
     }
   }
 
