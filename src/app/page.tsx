@@ -16,7 +16,7 @@ import {
   clearWorkspace,
 } from "@/lib/db";
 import { useHandouts, addHandoutFromFile, deleteHandout, useScratchpadHtml, saveScratchpadHtml } from "@/lib/db";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 type Section = {
   id: string;
@@ -24,6 +24,8 @@ type Section = {
   content: string;
   isPublic?: boolean;
   isStarred?: boolean;
+  updatedAt?: number | string;
+  createdAt?: number | string;
 };
 
 type TabKey = CollectionKey | "fastCalculations" | "sharedBlurbs" | "monitoring" | "starred";
@@ -529,8 +531,8 @@ export default function Home() {
       return sectionsToFilter.sort((a, b) => {
         if (a.isStarred && !b.isStarred) return -1;
         if (!a.isStarred && b.isStarred) return 1;
-        const aTime = new Date(a.updatedAt || a.createdAt).getTime();
-        const bTime = new Date(b.updatedAt || b.createdAt).getTime();
+        const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
         return bTime - aTime;
       });
     }
@@ -543,8 +545,8 @@ export default function Home() {
     }).sort((a, b) => {
       if (a.isStarred && !b.isStarred) return -1;
       if (!a.isStarred && b.isStarred) return 1;
-      const aTime = new Date(a.updatedAt || a.createdAt).getTime();
-      const bTime = new Date(b.updatedAt || b.createdAt).getTime();
+      const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
       return bTime - aTime;
     });
   }, [sections, starredSections, search, active]);
@@ -972,8 +974,6 @@ function SharedBlurbsManager() {
   const [search, setSearch] = useState("");
   const [sharedSections, setSharedSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
-  const userId = session?.user?.email?.toLowerCase();
 
   // Get local public sections from ALL collections
   const [localPublicSections, setLocalPublicSections] = useState<Section[]>([]);
