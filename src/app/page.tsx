@@ -7,7 +7,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
-import { type CollectionKey, useSectionsByCollection, addSection, updateSection, deleteSection } from "@/lib/db";
+import { type CollectionKey, useSectionsByCollection, addSection, updateSection, deleteSection, db } from "@/lib/db";
 import { useSectionsApi } from "@/lib/sections";
 import {
   useWorkspaceItems,
@@ -223,7 +223,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     if (isAuthenticated && !error) {
       try {
         return await addSectionApi({ collection });
-      } catch (err) {
+      } catch {
         console.warn("Server API failed, falling back to local storage");
         return addSection(collection, userId);
       }
@@ -236,7 +236,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     if (isAuthenticated && !error) {
       try {
         return await updateSectionApi(id, { title });
-      } catch (err) {
+      } catch {
         console.warn("Server API failed, falling back to local storage");
         return updateSection(id, { title });
       }
@@ -249,7 +249,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     if (isAuthenticated && !error) {
       try {
         return await updateSectionApi(id, { content });
-      } catch (err) {
+      } catch {
         console.warn("Server API failed, falling back to local storage");
         return updateSection(id, { content });
       }
@@ -262,7 +262,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     if (isAuthenticated && !error) {
       try {
         return await updateSectionApi(id, { isPublic });
-      } catch (err) {
+      } catch {
         console.warn("Server API failed, falling back to local storage");
         return updateSection(id, { isPublic });
       }
@@ -275,7 +275,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     if (isAuthenticated && !error) {
       try {
         return await deleteSectionApi(id);
-      } catch (err) {
+      } catch {
         console.warn("Server API failed, falling back to local storage");
         return deleteSection(id);
       }

@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     if (collection) where.collection = collection;
     const sections = await prisma.section.findMany({ where, orderBy: { updatedAt: "desc" } });
     return NextResponse.json(sections);
-  } catch (error) {
+  } catch {
     // If database is not available, return error status
     console.warn("Database not available, returning error");
     return NextResponse.json({ error: "Database not available" }, { status: 503 });
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       },
     });
     return NextResponse.json(created);
-  } catch (error) {
+  } catch {
     // If database is not available, return error status
     console.warn("Database not available, returning error");
     return NextResponse.json({ error: "Database not available" }, { status: 503 });

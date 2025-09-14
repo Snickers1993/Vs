@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get all sections that are marked as public
     const sharedSections = await prisma.section.findMany({
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     });
     
     return NextResponse.json(sharedSections);
-  } catch (error) {
+  } catch {
     console.warn("Database not available, returning empty shared sections");
     return NextResponse.json([]);
   }

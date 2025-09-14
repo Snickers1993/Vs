@@ -23,7 +23,7 @@ export async function PATCH(
     });
     if (updated.userId !== userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch {
     console.warn("Database not available, returning error");
     return NextResponse.json({ error: "Database not available" }, { status: 503 });
   }
@@ -42,7 +42,7 @@ export async function DELETE(
     if (!existing || existing.userId !== userId) return NextResponse.json({ error: "not found" }, { status: 404 });
     await prisma.section.delete({ where: { id } });
     return NextResponse.json({ ok: true });
-  } catch (error) {
+  } catch {
     console.warn("Database not available, returning error");
     return NextResponse.json({ error: "Database not available" }, { status: 503 });
   }
