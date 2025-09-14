@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Calculator } from "lucide-react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
-import { type CollectionKey } from "@/lib/db";
+import { type CollectionKey, useSectionsByCollection, addSection, updateSection, deleteSection } from "@/lib/db";
 import { useSectionsApi } from "@/lib/sections";
 import {
   useWorkspaceItems,
@@ -141,13 +141,49 @@ function escapeHtml(text: string): string {
     .replaceAll(/'/g, "&#039;");
 }
 
-function useCollection(collection: CollectionKey) {
-  // When signed in, use server API; fallback to empty if not
-  const { sections, addSectionApi, updateSectionApi, deleteSectionApi } = useSectionsApi(collection);
-  const add = useCallback(() => addSectionApi({ collection }), [collection, addSectionApi]);
-  const updateTitle = useCallback((id: string, title: string) => updateSectionApi(id, { title }), [updateSectionApi]);
-  const updateContent = useCallback((id: string, content: string) => updateSectionApi(id, { content }), [updateSectionApi]);
-  const removeById = useCallback((id: string) => deleteSectionApi(id), [deleteSectionApi]);
+function useCollection(collection: CollectionKey, userId?: string) {
+  // When signed in, use server API; fallback to local storage if not
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
+  
+  const { sections: serverSections, addSectionApi, updateSectionApi, deleteSectionApi, error } = useSectionsApi(collection);
+  const localSections = useSectionsByCollection(collection, userId);
+  
+  // Use server data if authenticated and no error, otherwise use local data
+  const sections = isAuthenticated && !error ? serverSections : localSections;
+  
+  const add = useCallback(async () => {
+    if (isAuthenticated && !error) {
+      return addSectionApi({ collection });
+    } else {
+      return addSection(collection, userId);
+    }
+  }, [collection, userId, isAuthenticated, error, addSectionApi]);
+  
+  const updateTitle = useCallback(async (id: string, title: string) => {
+    if (isAuthenticated && !error) {
+      return updateSectionApi(id, { title });
+    } else {
+      return updateSection(id, { title });
+    }
+  }, [isAuthenticated, error, updateSectionApi]);
+  
+  const updateContent = useCallback(async (id: string, content: string) => {
+    if (isAuthenticated && !error) {
+      return updateSectionApi(id, { content });
+    } else {
+      return updateSection(id, { content });
+    }
+  }, [isAuthenticated, error, updateSectionApi]);
+  
+  const removeById = useCallback(async (id: string) => {
+    if (isAuthenticated && !error) {
+      return deleteSectionApi(id);
+    } else {
+      return deleteSection(id);
+    }
+  }, [isAuthenticated, error, deleteSectionApi]);
+  
   return { sections: sections as { id: string; title: string; content: string }[], add, updateTitle, updateContent, removeById };
 }
 
@@ -252,7 +288,7 @@ export default function Home() {
   }, [active]);
   const { data: session } = useSession();
   const userId = session?.user?.email?.toLowerCase();
-  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive);
+  const { sections, add, updateTitle, updateContent, removeById } = useCollection(collectionForActive, userId);
   const [search, setSearch] = useState("");
 
   const handleCopy = async (title: string, html: string) => {
