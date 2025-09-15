@@ -220,37 +220,80 @@ function useCollection(collection: CollectionKey, userId?: string) {
   const { sections: serverSections, addSectionApi, updateSectionApi, deleteSectionApi, error } = useSectionsApi(collection);
   const localSections = useSectionsByCollection(collection, userId);
   
-  // Always merge local and server data when authenticated, prioritize server data for conflicts
+  // Smart data merging: prioritize local data when server is unavailable, server data when available
   const sections = useMemo(() => {
     if (!isAuthenticated) {
       return localSections;
     }
     
-    // Create a map of server sections by ID for quick lookup
-    const serverMap = new Map(serverSections.map(s => [s.id, s]));
+    // If server API failed, prioritize local data
+    if (error) {
+      console.log("Server API unavailable, using local data only");
+      return localSections;
+    }
     
-    // Start with local sections and update with server data where available
-    const mergedSections = localSections.map(localSection => {
-      const serverSection = serverMap.get(localSection.id);
-      if (serverSection) {
-        // Server data takes precedence, remove from map to avoid duplicates
-        serverMap.delete(localSection.id);
-        return serverSection;
+    // If no server data, use local data
+    if (!serverSections || serverSections.length === 0) {
+      return localSections;
+    }
+    
+    // Server is available - merge data intelligently
+    const serverMap = new Map(serverSections.map(s => [s.id, s]));
+    const localMap = new Map(localSections.map(s => [s.id, s]));
+    
+    // Start with server data as base
+    const mergedSections = [...serverSections];
+    
+    // Add local sections that aren't on server (new local-only sections)
+    localSections.forEach(localSection => {
+      if (!serverMap.has(localSection.id)) {
+        mergedSections.push(localSection);
       }
-      return localSection;
     });
     
-    // Add any remaining server sections that weren't in local data
-    const remainingServerSections = Array.from(serverMap.values());
-    
-    // Combine and sort by updatedAt
-    return [...mergedSections, ...remainingServerSections].sort((a, b) => {
+    // Sort by updatedAt
+    return mergedSections.sort((a, b) => {
       const aTime = new Date(a.updatedAt || a.createdAt).getTime();
       const bTime = new Date(b.updatedAt || b.createdAt).getTime();
       return bTime - aTime;
     });
-  }, [isAuthenticated, serverSections, localSections]);
+  }, [isAuthenticated, serverSections, localSections, error]);
   
+  // Sync local data to server when server becomes available
+  const syncLocalToServer = useCallback(async () => {
+    if (!isAuthenticated || error) return;
+    
+    try {
+      // Find local sections that aren't on server
+      const serverIds = new Set(serverSections.map(s => s.id));
+      const localOnlySections = localSections.filter(s => !serverIds.has(s.id));
+      
+      // Push local-only sections to server
+      for (const section of localOnlySections) {
+        try {
+          await addSectionApi({
+            collection: section.collection,
+            title: section.title,
+            content: section.content,
+            isPublic: section.isPublic || false,
+            isStarred: section.isStarred || false
+          });
+        } catch (err) {
+          console.warn(`Failed to sync section ${section.id} to server:`, err);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to sync local data to server:", err);
+    }
+  }, [isAuthenticated, error, serverSections, localSections, addSectionApi]);
+
+  // Auto-sync when server becomes available
+  React.useEffect(() => {
+    if (isAuthenticated && !error && serverSections && localSections.length > 0) {
+      syncLocalToServer();
+    }
+  }, [isAuthenticated, error, serverSections, localSections, syncLocalToServer]);
+
   const add = useCallback(async () => {
     if (isAuthenticated && !error) {
       try {
@@ -621,6 +664,7 @@ export default function Home() {
           handleCopyText={handleCopyText}
           active={active}
           userId={userId}
+          syncLocalToServer={syncLocalToServer}
         />
         
         {/* Footer with Export/Import buttons */}
@@ -630,6 +674,15 @@ export default function Home() {
               VetBlurbs - Veterinary Practice Management
             </div>
             <div className="flex gap-2">
+              {syncLocalToServer && (
+                <button
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  onClick={syncLocalToServer}
+                  title="Sync local data to server"
+                >
+                  <Upload size={14} /> Sync
+                </button>
+              )}
               <button
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
                 onClick={() => exportAllData(userId)}
@@ -663,6 +716,7 @@ function MainWithWorkspace({
   handleCopyText,
   active,
   userId,
+  syncLocalToServer,
 }: {
   sections: Section[];
   updateTitle: (id: string, title: string) => void;
@@ -674,6 +728,7 @@ function MainWithWorkspace({
   handleCopyText: (title: string, html: string) => Promise<void>;
   active: TabKey;
   userId?: string;
+  syncLocalToServer?: () => Promise<void>;
 }) {
   const workspace = useWorkspaceItems(userId);
   const handouts = useHandouts(userId);
