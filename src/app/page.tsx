@@ -1,4 +1,5 @@
 "use client";
+// Force rebuild after database migration fix
 
 import React, { useCallback, useMemo, useState } from "react";
 import { Plus, Copy, Trash2, ChevronDown, ChevronUp, Calculator, Download, Upload, Star } from "lucide-react";
