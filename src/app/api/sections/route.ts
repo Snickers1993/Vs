@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  const userId = session?.user?.email ?? "guest";
+  const userId = session?.user?.email?.toLowerCase() ?? "guest";
   const { searchParams } = new URL(req.url);
   const collection = searchParams.get("collection") ?? undefined;
   
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  const userId = session?.user?.email ?? "guest";
+  const userId = session?.user?.email?.toLowerCase() ?? "guest";
   const body = await req.json();
   
   try {

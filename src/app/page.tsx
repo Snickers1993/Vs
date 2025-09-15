@@ -222,7 +222,10 @@ function useCollection(collection: CollectionKey, userId?: string) {
   
   // Smart data merging: prioritize local data when server is unavailable, server data when available
   const sections = useMemo(() => {
+    console.log(`[DEBUG] useCollection - isAuthenticated: ${isAuthenticated}, userId: ${userId}, error: ${error}, serverSections: ${serverSections?.length || 0}, localSections: ${localSections.length}`);
+    
     if (!isAuthenticated) {
+      console.log("Not authenticated, using local data only");
       return localSections;
     }
     
@@ -234,6 +237,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     
     // If no server data, use local data
     if (!serverSections || serverSections.length === 0) {
+      console.log("No server data, using local data only");
       return localSections;
     }
     

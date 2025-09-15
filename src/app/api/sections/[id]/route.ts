@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   const { id } = await context.params;
   const session = await getServerSession(authOptions);
-  const userId = session?.user?.email ?? "guest";
+  const userId = session?.user?.email?.toLowerCase() ?? "guest";
   const body = await req.json();
   
   try {
@@ -35,7 +35,7 @@ export async function DELETE(
 ) {
   const { id } = await context.params;
   const session = await getServerSession(authOptions);
-  const userId = session?.user?.email ?? "guest";
+  const userId = session?.user?.email?.toLowerCase() ?? "guest";
   
   try {
     const existing = await prisma.section.findUnique({ where: { id } });
