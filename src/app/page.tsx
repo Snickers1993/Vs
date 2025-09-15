@@ -239,7 +239,6 @@ function useCollection(collection: CollectionKey, userId?: string) {
     
     // Server is available - merge data intelligently
     const serverMap = new Map(serverSections.map(s => [s.id, s]));
-    const localMap = new Map(localSections.map(s => [s.id, s]));
     
     // Start with server data as base
     const mergedSections = [...serverSections];
@@ -247,7 +246,17 @@ function useCollection(collection: CollectionKey, userId?: string) {
     // Add local sections that aren't on server (new local-only sections)
     localSections.forEach(localSection => {
       if (!serverMap.has(localSection.id)) {
-        mergedSections.push(localSection);
+        // Convert DbSection to Section format for consistency
+        const sectionForMerge = {
+          id: localSection.id,
+          title: localSection.title,
+          content: localSection.content,
+          isPublic: localSection.isPublic,
+          isStarred: localSection.isStarred,
+          updatedAt: localSection.updatedAt,
+          createdAt: localSection.createdAt
+        };
+        mergedSections.push(sectionForMerge);
       }
     });
     
@@ -372,7 +381,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     }
   }, [isAuthenticated, error, deleteSectionApi]);
   
-  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean; isStarred?: boolean; updatedAt?: number | string; createdAt?: number | string }[], add, updateTitle, updateContent, updatePublic, updateStarred, removeById };
+  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean; isStarred?: boolean; updatedAt?: number | string; createdAt?: number | string }[], add, updateTitle, updateContent, updatePublic, updateStarred, removeById, syncLocalToServer };
 }
 
 function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete, onTogglePublic, onToggleStarred, isPublic, isStarred }: {
@@ -542,7 +551,7 @@ export default function Home() {
   }, [active]);
   const { data: session } = useSession();
   const userId = session?.user?.email?.toLowerCase();
-  const { sections, add, updateTitle, updateContent, updatePublic, updateStarred, removeById } = useCollection(collectionForActive, userId);
+  const { sections, add, updateTitle, updateContent, updatePublic, updateStarred, removeById, syncLocalToServer } = useCollection(collectionForActive, userId);
   const starredSections = useStarredSections(userId);
   const [search, setSearch] = useState("");
 
