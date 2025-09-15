@@ -34,8 +34,9 @@ async function runMigration() {
     
     return { 
       success: true, 
-      message: "Migration completed successfully",
-      testQuery
+      message: "Migration completed successfully - Schema updated with isPublic and isStarred columns",
+      testQuery,
+      timestamp: new Date().toISOString()
     };
   } catch (error) {
     console.error("[DEBUG] Migration failed:", error);
