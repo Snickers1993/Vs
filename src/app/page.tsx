@@ -256,7 +256,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
           updatedAt: localSection.updatedAt,
           createdAt: localSection.createdAt
         };
-        mergedSections.push(sectionForMerge as typeof serverSections[0]); // Type assertion for compatibility
+        mergedSections.push(sectionForMerge as unknown as typeof serverSections[0]); // Type assertion for compatibility
       }
     });
     
