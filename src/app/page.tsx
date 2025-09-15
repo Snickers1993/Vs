@@ -329,7 +329,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
     }
   }, [isAuthenticated, error, deleteSectionApi]);
   
-  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean; isStarred?: boolean }[], add, updateTitle, updateContent, updatePublic, updateStarred, removeById };
+  return { sections: sections as { id: string; title: string; content: string; isPublic?: boolean; isStarred?: boolean; updatedAt?: number | string; createdAt?: number | string }[], add, updateTitle, updateContent, updatePublic, updateStarred, removeById };
 }
 
 function SectionCard({ section, onChangeTitle, onChangeContent, onCopy, onCopyText, onDelete, onTogglePublic, onToggleStarred, isPublic, isStarred }: {
