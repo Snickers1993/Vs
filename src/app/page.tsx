@@ -256,7 +256,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
           updatedAt: localSection.updatedAt,
           createdAt: localSection.createdAt
         };
-        mergedSections.push(sectionForMerge);
+        mergedSections.push(sectionForMerge as any); // Type assertion for compatibility
       }
     });
     
@@ -673,7 +673,6 @@ export default function Home() {
           handleCopyText={handleCopyText}
           active={active}
           userId={userId}
-          syncLocalToServer={syncLocalToServer}
         />
         
         {/* Footer with Export/Import buttons */}
@@ -725,7 +724,6 @@ function MainWithWorkspace({
   handleCopyText,
   active,
   userId,
-  syncLocalToServer,
 }: {
   sections: Section[];
   updateTitle: (id: string, title: string) => void;
@@ -737,7 +735,6 @@ function MainWithWorkspace({
   handleCopyText: (title: string, html: string) => Promise<void>;
   active: TabKey;
   userId?: string;
-  syncLocalToServer?: () => Promise<void>;
 }) {
   const workspace = useWorkspaceItems(userId);
   const handouts = useHandouts(userId);
