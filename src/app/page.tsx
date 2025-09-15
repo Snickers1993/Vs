@@ -274,16 +274,24 @@ function useCollection(collection: CollectionKey, userId?: string) {
   
   // Sync local data to server when server becomes available
   const syncLocalToServer = useCallback(async () => {
-    if (!isAuthenticated || error) return;
+    console.log(`[DEBUG] syncLocalToServer - isAuthenticated: ${isAuthenticated}, error: ${error}, serverSections: ${serverSections?.length || 0}, localSections: ${localSections.length}`);
+    
+    if (!isAuthenticated || error) {
+      console.log("Cannot sync: not authenticated or server error");
+      return;
+    }
     
     try {
       // Find local sections that aren't on server
       const serverIds = new Set(serverSections.map(s => s.id));
       const localOnlySections = localSections.filter(s => !serverIds.has(s.id));
       
+      console.log(`[DEBUG] Found ${localOnlySections.length} local-only sections to sync`);
+      
       // Push local-only sections to server
       for (const section of localOnlySections) {
         try {
+          console.log(`[DEBUG] Syncing section: ${section.title} (${section.id})`);
           await addSectionApi({
             collection: section.collection,
             title: section.title,
@@ -291,6 +299,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
             isPublic: section.isPublic || false,
             isStarred: section.isStarred || false
           });
+          console.log(`[DEBUG] Successfully synced section: ${section.title}`);
         } catch (err) {
           console.warn(`Failed to sync section ${section.id} to server:`, err);
         }
