@@ -69,7 +69,7 @@ export function useSectionsByCollection(collection: CollectionKey, userId?: stri
 
 export function useStarredSections(userId?: string): DbSection[] {
   const items = useLiveQuery(async () => {
-    let rows = await db.sections.where("isStarred").equals(true).toArray();
+    let rows = await db.sections.filter((section) => section.isStarred === true).toArray();
     if (userId) rows = rows.filter((r) => r.userId === userId);
     return rows.sort((a, b) => b.updatedAt - a.updatedAt);
   }, [userId], [] as DbSection[]);
