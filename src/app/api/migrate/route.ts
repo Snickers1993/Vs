@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function POST() {
+async function runMigration() {
   try {
     console.log("[DEBUG] Running manual migration...");
     
@@ -32,18 +32,28 @@ export async function POST() {
     
     console.log("[DEBUG] Migration successful, test query result:", testQuery);
     
-    return NextResponse.json({ 
+    return { 
       success: true, 
       message: "Migration completed successfully",
       testQuery
-    });
+    };
   } catch (error) {
     console.error("[DEBUG] Migration failed:", error);
     
-    return NextResponse.json({ 
+    return { 
       success: false, 
       message: "Migration failed",
       error: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    };
   }
+}
+
+export async function GET() {
+  const result = await runMigration();
+  return NextResponse.json(result, { status: result.success ? 200 : 500 });
+}
+
+export async function POST() {
+  const result = await runMigration();
+  return NextResponse.json(result, { status: result.success ? 200 : 500 });
 }
