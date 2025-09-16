@@ -1,30 +1,45 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSessionUserInfo } from "@/lib/session";
 
 export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.email?.toLowerCase() ?? "guest";
-  const body = await req.json();
-  
+
   try {
+    const body = await req.json();
+    const sessionInfo = await getSessionUserInfo();
+    if (!sessionInfo.session || !sessionInfo.userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const existing = await prisma.section.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    if (existing.userId !== sessionInfo.userId) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
+    console.log(
+      `[DEBUG] API PATCH - userId: ${sessionInfo.userId}, email: ${sessionInfo.email}, id: ${id}`
+    );
+
+    const data: { title?: string; content?: string; isPublic?: boolean; isStarred?: boolean } = {};
+    if (typeof body.title === "string") data.title = body.title;
+    if (typeof body.content === "string") data.content = body.content;
+    if (typeof body.isPublic === "boolean") data.isPublic = body.isPublic;
+    if (typeof body.isStarred === "boolean") data.isStarred = body.isStarred;
+
     const updated = await prisma.section.update({
       where: { id },
-      data: { 
-        title: body.title, 
-        content: body.content,
-        isPublic: body.isPublic
-      },
+      data,
     });
-    if (updated.userId !== userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
     return NextResponse.json(updated);
-  } catch {
-    console.warn("Database not available, returning error");
+  } catch (error) {
+    console.warn("Database not available, returning error:", error);
     return NextResponse.json({ error: "Database not available" }, { status: 503 });
   }
 }
@@ -34,18 +49,29 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.email?.toLowerCase() ?? "guest";
-  
+
   try {
+    const sessionInfo = await getSessionUserInfo();
+    if (!sessionInfo.session || !sessionInfo.userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const existing = await prisma.section.findUnique({ where: { id } });
-    if (!existing || existing.userId !== userId) return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!existing) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    if (existing.userId !== sessionInfo.userId) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
+    console.log(
+      `[DEBUG] API DELETE - userId: ${sessionInfo.userId}, email: ${sessionInfo.email}, id: ${id}`
+    );
+
     await prisma.section.delete({ where: { id } });
     return NextResponse.json({ ok: true });
-  } catch {
-    console.warn("Database not available, returning error");
+  } catch (error) {
+    console.warn("Database not available, returning error:", error);
     return NextResponse.json({ error: "Database not available" }, { status: 503 });
   }
 }
-
-
