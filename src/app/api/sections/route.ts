@@ -45,19 +45,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Collection is required" }, { status: 400 });
     }
 
+    const payload: {
+      id?: string;
+      userId: string;
+      collection: string;
+      title: string;
+      content: string;
+      isPublic: boolean;
+      isStarred: boolean;
+    } = {
+      userId: sessionInfo.userId,
+      collection: body.collection,
+      title: typeof body.title === "string" ? body.title : "Untitled",
+      content: typeof body.content === "string" ? body.content : "",
+      isPublic: typeof body.isPublic === "boolean" ? body.isPublic : false,
+      isStarred: typeof body.isStarred === "boolean" ? body.isStarred : false,
+    };
+
+    if (typeof body.id === "string" && body.id.trim().length > 0) {
+      payload.id = body.id.trim();
+      const existing = await prisma.section.findUnique({ where: { id: payload.id } });
+      if (existing) {
+        if (existing.userId !== sessionInfo.userId) {
+          return NextResponse.json({ error: "forbidden" }, { status: 403 });
+        }
+        console.log(
+          `[DEBUG] API POST - section already exists for user ${sessionInfo.userId}, returning existing record ${existing.id}`
+        );
+        return NextResponse.json(existing);
+      }
+    }
+
     console.log(
-      `[DEBUG] API POST - userId: ${sessionInfo.userId}, email: ${sessionInfo.email}, collection: ${body.collection}, title: ${body.title}`
+      `[DEBUG] API POST - userId: ${sessionInfo.userId}, email: ${sessionInfo.email}, collection: ${payload.collection}, title: ${payload.title}, id: ${payload.id ?? "auto"}`
     );
 
     const created = await prisma.section.create({
-      data: {
-        userId: sessionInfo.userId,
-        collection: body.collection,
-        title: body.title ?? "Untitled",
-        content: body.content ?? "",
-        isPublic: body.isPublic ?? false,
-        isStarred: body.isStarred ?? false,
-      },
+      data: payload,
     });
     console.log(`[DEBUG] API POST - created section: ${created.id} for user ${sessionInfo.userId}`);
     return NextResponse.json(created);

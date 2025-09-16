@@ -294,6 +294,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
         try {
           console.log(`[DEBUG] Syncing section: ${section.title} (${section.id})`);
           await addSectionApi({
+            id: section.id,
             collection: section.collection,
             title: section.title,
             content: section.content,
@@ -301,6 +302,7 @@ function useCollection(collection: CollectionKey, userId?: string) {
             isStarred: section.isStarred || false
           });
           console.log(`[DEBUG] Successfully synced section: ${section.title}`);
+          serverIds.add(section.id);
         } catch (err) {
           console.warn(`Failed to sync section ${section.id} to server:`, err);
         }
@@ -1367,3 +1369,4 @@ function FastCalculations() {
     </div>
   );
 }
+

@@ -12,6 +12,15 @@ export type SectionDto = {
   updatedAt: string;
 };
 
+type SectionPayload = {
+  id?: string;
+  collection: string;
+  title?: string;
+  content?: string;
+  isPublic?: boolean;
+  isStarred?: boolean;
+};
+
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
@@ -29,7 +38,7 @@ export function useSectionsApi(collection?: string) {
   const key = collection ? `/api/sections?collection=${encodeURIComponent(collection)}` : "/api/sections";
   const { data, error, mutate, isLoading } = useSWR<SectionDto[]>(key, fetcher);
 
-  async function addSectionApi(partial: { collection: string; title?: string; content?: string; isPublic?: boolean; isStarred?: boolean }) {
+  async function addSectionApi(partial: SectionPayload) {
     const res = await fetch("/api/sections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -74,5 +83,3 @@ export function useSectionsApi(collection?: string) {
 
   return { sections: data ?? [], isLoading, error, addSectionApi, updateSectionApi, deleteSectionApi };
 }
-
-
