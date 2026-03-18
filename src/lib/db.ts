@@ -1,5 +1,7 @@
 import Dexie, { Table } from "dexie";
 import { useLiveQuery } from "dexie-react-hooks";
+import { sanitizeRichTextHtml } from "@/lib/html";
+import { matchesUserScope } from "@/lib/user-scope";
 
 export type CollectionKey =
   | "exams"
@@ -61,7 +63,7 @@ export const db = new VetDB();
 export function useSectionsByCollection(collection: CollectionKey, userId?: string): DbSection[] {
   const items = useLiveQuery(async () => {
     let rows = await db.sections.where("collection").equals(collection).toArray();
-    if (userId) rows = rows.filter((r) => r.userId === userId);
+    rows = rows.filter((r) => matchesUserScope(r.userId, userId));
     return rows.sort((a, b) => b.updatedAt - a.updatedAt);
   }, [collection, userId], [] as DbSection[]);
   return items ?? [];
@@ -70,7 +72,7 @@ export function useSectionsByCollection(collection: CollectionKey, userId?: stri
 export function useStarredSections(userId?: string): DbSection[] {
   const items = useLiveQuery(async () => {
     let rows = await db.sections.filter((section) => section.isStarred === true).toArray();
-    if (userId) rows = rows.filter((r) => r.userId === userId);
+    rows = rows.filter((r) => matchesUserScope(r.userId, userId));
     return rows.sort((a, b) => b.updatedAt - a.updatedAt);
   }, [userId], [] as DbSection[]);
   return items ?? [];
@@ -107,7 +109,7 @@ export async function deleteSection(id: string): Promise<void> {
 export function useWorkspaceItems(userId?: string): WorkspaceItem[] {
   const items = useLiveQuery(async () => {
     let rows = await db.workspaceItems.toArray();
-    if (userId) rows = rows.filter((r) => r.userId === userId);
+    rows = rows.filter((r) => matchesUserScope(r.userId, userId));
     return rows.sort((a, b) => a.order - b.order || a.createdAt - b.createdAt);
   }, [userId], [] as WorkspaceItem[]);
   return items ?? [];
@@ -116,9 +118,11 @@ export function useWorkspaceItems(userId?: string): WorkspaceItem[] {
 export async function addWorkspaceItem(params: { title: string; html?: string; text?: string; userId?: string }): Promise<string> {
   const id = crypto.randomUUID();
   const now = Date.now();
-  const count = await db.workspaceItems.count();
-  const text = params.text ?? stripHtml(params.html ?? "");
-  const html = params.html ?? escapeHtmlForHtmlBlock(text);
+  const rows = await db.workspaceItems.toArray();
+  const count = rows.filter((row) => matchesUserScope(row.userId, params.userId)).length;
+  const safeHtml = sanitizeRichTextHtml(params.html ?? "");
+  const text = params.text ?? stripHtml(safeHtml);
+  const html = safeHtml || escapeHtmlForHtmlBlock(text);
   await db.workspaceItems.add({
     id,
     title: params.title || "Untitled",
@@ -135,8 +139,15 @@ export async function removeWorkspaceItem(id: string): Promise<void> {
   await db.workspaceItems.delete(id);
 }
 
-export async function clearWorkspace(): Promise<void> {
-  await db.workspaceItems.clear();
+export async function clearWorkspace(userId?: string): Promise<void> {
+  const rows = await db.workspaceItems.toArray();
+  const ids = rows
+    .filter((row) => matchesUserScope(row.userId, userId))
+    .map((row) => row.id);
+
+  if (ids.length > 0) {
+    await db.workspaceItems.bulkDelete(ids);
+  }
 }
 
 export async function reorderWorkspace(idsInOrder: string[]): Promise<void> {
@@ -180,7 +191,7 @@ export type Handout = {
 export function useHandouts(userId?: string): Handout[] {
   const items = useLiveQuery(async () => {
     let rows = await db.handouts.toArray();
-    if (userId) rows = rows.filter((r) => r.userId === userId);
+    rows = rows.filter((r) => matchesUserScope(r.userId, userId));
     return rows.sort((a, b) => b.createdAt - a.createdAt);
   }, [userId], [] as Handout[]);
     
@@ -230,11 +241,12 @@ export function useScratchpadHtml(userId?: string): string {
 export async function saveScratchpadHtml(userId: string | undefined, html: string): Promise<void> {
   const id = scratchpadId(userId);
   const now = Date.now();
+  const safeHtml = sanitizeRichTextHtml(html);
   const existing = await db.scratchpads.get(id);
   if (existing) {
-    await db.scratchpads.update(id, { html, updatedAt: now });
+    await db.scratchpads.update(id, { html: safeHtml, updatedAt: now });
   } else {
-    await db.scratchpads.add({ id, userId, html, updatedAt: now });
+    await db.scratchpads.add({ id, userId, html: safeHtml, updatedAt: now });
   }
 }
 

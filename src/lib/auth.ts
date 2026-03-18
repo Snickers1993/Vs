@@ -17,17 +17,16 @@ export const authOptions: NextAuthOptions = {
         const email = credentials?.email?.toString().trim().toLowerCase() || "";
         const password = credentials?.password?.toString() || "";
         if (!email || !password) return null;
-        
+
         try {
           const user = await prisma.user.findUnique({ where: { email } });
           if (!user || !user.hashedPassword) return null;
           const ok = await bcrypt.compare(password, user.hashedPassword);
           if (!ok) return null;
           return { id: user.id, email: user.email ?? email } as { id: string; email: string };
-        } catch {
-          // If database is not available, allow any credentials for development
-          console.warn("Database not available, allowing any credentials for development");
-          return { id: email, email: email } as { id: string; email: string };
+        } catch (error) {
+          console.error("Credentials authorization failed", error);
+          return null;
         }
       },
     }),
