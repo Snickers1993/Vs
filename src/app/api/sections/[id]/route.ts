@@ -23,13 +23,19 @@ export async function PATCH(
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
-    console.log(
-      `[DEBUG] API PATCH - userId: ${sessionInfo.userId}, email: ${sessionInfo.email}, id: ${id}`
-    );
-
     const data: { title?: string; content?: string; isPublic?: boolean; isStarred?: boolean } = {};
-    if (typeof body.title === "string") data.title = body.title;
-    if (typeof body.content === "string") data.content = body.content;
+    if (typeof body.title === "string") {
+      if (body.title.length > 500) {
+        return NextResponse.json({ error: "Title must be 500 characters or fewer" }, { status: 400 });
+      }
+      data.title = body.title;
+    }
+    if (typeof body.content === "string") {
+      if (body.content.length > 100_000) {
+        return NextResponse.json({ error: "Content must be 100KB or fewer" }, { status: 400 });
+      }
+      data.content = body.content;
+    }
     if (typeof body.isPublic === "boolean") data.isPublic = body.isPublic;
     if (typeof body.isStarred === "boolean") data.isStarred = body.isStarred;
 
@@ -64,11 +70,7 @@ export async function DELETE(
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
-    console.log(
-      `[DEBUG] API DELETE - userId: ${sessionInfo.userId}, email: ${sessionInfo.email}, id: ${id}`
-    );
-
-    await prisma.section.delete({ where: { id } });
+    await prisma.section.update({ where: { id }, data: { deletedAt: new Date() } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.warn("Database not available, returning error:", error);

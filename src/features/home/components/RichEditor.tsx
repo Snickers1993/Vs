@@ -14,6 +14,12 @@ function Toolbar({ editor }: { editor: Editor | null }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 bg-white shadow-sm">
+      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+        H2
+      </button>
+      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+        H3
+      </button>
       <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleBold().run()}>
         Bold
       </button>
@@ -56,7 +62,7 @@ export default function RichEditor({
       StarterKit,
       Underline,
       Link.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder: placeholder ?? "Type hereâ€¦" }),
+      Placeholder.configure({ placeholder: placeholder ?? "Type here..." }),
     ],
     content: sanitizeRichTextHtml(value || ""),
     immediatelyRender: false,

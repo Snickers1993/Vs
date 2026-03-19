@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { CalcRow, Unit } from "@/features/home/types";
+import {
+  DEFAULT_EMERGENCY_DRUGS,
+  DEFAULT_COMMON_MEDS,
+  DEFAULT_SEDATION,
+  NEW_MEDICATION_DEFAULT,
+  NEW_EMERGENCY_DEFAULT,
+  NEW_SEDATION_DEFAULT,
+} from "@/features/home/data/drug-defaults";
 
 type TableEditorProps = {
   title: string;
@@ -132,21 +140,9 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
 
 export default function FastCalculations() {
   const [weightKg, setWeightKg] = useState<number | string>("");
-  const [emergencyDrugs, setEmergencyDrugs] = useState<CalcRow[]>([
-    { name: "Epinephrine (IV)", conc: 1, concUnit: "mg/mL", dosePerKg: 0.01, unit: "mg/kg" },
-    { name: "Atropine (IV)", conc: 0.4, concUnit: "mg/mL", dosePerKg: 0.02, unit: "mg/kg" },
-    { name: "Lidocaine 2% (dogs)", conc: 20, concUnit: "mg/mL", dosePerKg: 2, unit: "mg/kg" },
-  ]);
-  const [commonMeds, setCommonMeds] = useState<CalcRow[]>([
-    { name: "Maropitant (Cerenia)", conc: 10, concUnit: "mg/mL", dosePerKg: 1, unit: "mg/kg" },
-    { name: "Ondansetron", conc: 2, concUnit: "mg/mL", dosePerKg: 0.5, unit: "mg/kg" },
-    { name: "Metoclopramide", conc: 5, concUnit: "mg/mL", dosePerKg: 0.5, unit: "mg/kg" },
-  ]);
-  const [sedation, setSedation] = useState<CalcRow[]>([
-    { name: "Dexmedetomidine", conc: 0.5, concUnit: "mg/mL", dosePerKg: 5, unit: "mcg/kg" },
-    { name: "Butorphanol", conc: 10, concUnit: "mg/mL", dosePerKg: 0.2, unit: "mg/kg" },
-    { name: "Propofol", conc: 10, concUnit: "mg/mL", dosePerKg: 4, unit: "mg/kg" },
-  ]);
+  const [emergencyDrugs, setEmergencyDrugs] = useState<CalcRow[]>(() => [...DEFAULT_EMERGENCY_DRUGS]);
+  const [commonMeds, setCommonMeds] = useState<CalcRow[]>(() => [...DEFAULT_COMMON_MEDS]);
+  const [sedation, setSedation] = useState<CalcRow[]>(() => [...DEFAULT_SEDATION]);
 
   const weight = typeof weightKg === "number" ? weightKg : parseFloat(`${weightKg}`) || 0;
 
@@ -189,7 +185,7 @@ export default function FastCalculations() {
           title="Common medications"
           rows={commonMeds}
           setRows={setCommonMeds}
-          defaultRow={{ name: "New medication", conc: 1, concUnit: "mg/mL", dosePerKg: 0, unit: "mg/kg" }}
+          defaultRow={NEW_MEDICATION_DEFAULT}
           calcDose={calcDose}
           calcVolumeMl={calcVolumeMl}
           format={format}
@@ -198,7 +194,7 @@ export default function FastCalculations() {
           title="Emergency drugs"
           rows={emergencyDrugs}
           setRows={setEmergencyDrugs}
-          defaultRow={{ name: "New emergency drug", conc: 1, concUnit: "mg/mL", dosePerKg: 0, unit: "mg/kg" }}
+          defaultRow={NEW_EMERGENCY_DEFAULT}
           calcDose={calcDose}
           calcVolumeMl={calcVolumeMl}
           format={format}
@@ -209,7 +205,7 @@ export default function FastCalculations() {
         title="Anesthetics / Sedatives"
         rows={sedation}
         setRows={setSedation}
-        defaultRow={{ name: "New sedative", conc: 1, concUnit: "mg/mL", dosePerKg: 0, unit: "mg/kg" }}
+        defaultRow={NEW_SEDATION_DEFAULT}
         calcDose={calcDose}
         calcVolumeMl={calcVolumeMl}
         format={format}

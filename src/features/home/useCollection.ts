@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { addSection, deleteSection, type CollectionKey, updateSection, useSectionsByCollection } from "@/lib/db";
 import { useSectionsApi } from "@/lib/sections";
@@ -67,11 +67,18 @@ export function useCollection(collection: CollectionKey, userId?: string) {
     }
   }, [isAuthenticated, error, serverSections, localSections, addSectionApi]);
 
+  const hasSynced = useRef(false);
   useEffect(() => {
-    if (isAuthenticated && !error && serverSections && localSections.length > 0) {
+    if (isAuthenticated && !error && serverSections && localSections.length > 0 && !hasSynced.current) {
+      hasSynced.current = true;
       syncLocalToServer();
     }
   }, [isAuthenticated, error, serverSections, localSections, syncLocalToServer]);
+
+  // Reset sync flag when collection changes
+  useEffect(() => {
+    hasSynced.current = false;
+  }, [collection]);
 
   const add = useCallback(async () => {
     if (isAuthenticated && !error) {

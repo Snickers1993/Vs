@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Trash2, ChevronDown, ChevronUp, Star } from "lucide-react";
 import type { Section } from "@/features/home/types";
 import { htmlToPlainText } from "@/features/home/utils";
@@ -47,16 +47,28 @@ export default function SectionCard({
 
   const previewText = useMemo(() => htmlToPlainText(section.content).trim(), [section.content]);
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const setCopiedWithTimeout = useCallback((type: "html" | "text") => {
+    setCopied(type);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied("none"), 1200);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
   const handleCopyHtml = async () => {
     await onCopy();
-    setCopied("html");
-    setTimeout(() => setCopied("none"), 1200);
+    setCopiedWithTimeout("html");
   };
 
   const handleCopyText = async () => {
     await onCopyText();
-    setCopied("text");
-    setTimeout(() => setCopied("none"), 1200);
+    setCopiedWithTimeout("text");
   };
 
   return (
@@ -73,6 +85,7 @@ export default function SectionCard({
             className="p-1 rounded hover:bg-gray-100 transition-colors"
             onClick={onToggleStarred}
             title={isStarred ? "Remove from starred" : "Add to starred"}
+            aria-label={isStarred ? "Remove from starred" : "Add to starred"}
           >
             <Star size={20} className={isStarred ? "text-yellow-500 fill-yellow-500" : "text-gray-400 hover:text-yellow-500"} />
           </button>
@@ -85,7 +98,7 @@ export default function SectionCard({
 
       {expanded ? (
         <div className="space-y-2">
-          <RichEditor value={section.content} onChange={onChangeContent} placeholder="Write contentâ€¦" />
+          <RichEditor value={section.content} onChange={onChangeContent} placeholder="Write content..." />
           <div className="flex justify-end">
             <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-gray-50" onClick={() => setExpanded(false)}>
               <ChevronUp size={16} /> Collapse
@@ -100,7 +113,7 @@ export default function SectionCard({
             onClick={() => setExpanded(true)}
             title="Click to expand"
           >
-            {previewText ? previewText : "Click to add contentâ€¦"}
+            {previewText ? previewText : "Click to add content..."}
             <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
             <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-600 text-xs bg-white/80 px-2 py-0.5 rounded">
               Expand <ChevronDown size={14} />
@@ -132,6 +145,7 @@ export default function SectionCard({
             className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border bg-white px-2 text-xs hover:bg-gray-50"
             onClick={handleCopyHtml}
             title="Copy to clipboard"
+            aria-label="Copy as rich text"
           >
             <Copy size={14} /> Copy
           </button>
@@ -139,13 +153,15 @@ export default function SectionCard({
             className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border bg-white px-2 text-xs hover:bg-gray-50"
             onClick={handleCopyText}
             title="Copy as plain text"
+            aria-label="Copy as plain text"
           >
             Plain
           </button>
           <button
             className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-xs hover:bg-red-50 text-red-600"
             onClick={onDelete}
-            title="Delete"
+            title="Delete section"
+            aria-label="Delete section"
           >
             <Trash2 size={14} />
           </button>
