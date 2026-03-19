@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Trash2, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { Copy, Trash2, ChevronDown, ChevronUp, Star, Type } from "lucide-react";
 import type { Section } from "@/features/home/types";
 import { htmlToPlainText } from "@/features/home/utils";
 import RichEditor from "@/features/home/components/RichEditor";
@@ -131,18 +131,18 @@ export default function SectionCard({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/20">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/20">
         <div className="flex items-center gap-4">
           {onTogglePublic && (
-            <label className="flex items-center gap-2 text-sm">
+            <label className="glass-inset inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-slate-700">
               <input type="checkbox" checked={isPublic || false} onChange={onTogglePublic} className="rounded border-gray-300" />
               Public
             </label>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="glass-inset flex items-center gap-1 rounded-full p-1">
           <button
-            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs"
+            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs"
             onClick={handleCopyHtml}
             title="Copy to clipboard"
             aria-label="Copy as rich text"
@@ -150,20 +150,20 @@ export default function SectionCard({
             <Copy size={14} /> Copy
           </button>
           <button
-            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs"
+            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs"
             onClick={handleCopyText}
             title="Copy as plain text"
             aria-label="Copy as plain text"
           >
-            Plain
+            <Type size={14} /> Plain
           </button>
           <button
-            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs text-red-600 hover:!bg-red-500/20"
+            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs text-red-600 hover:!bg-red-500/20"
             onClick={onDelete}
             title="Delete section"
             aria-label="Delete section"
           >
-            <Trash2 size={14} />
+            <Trash2 size={14} /> Delete
           </button>
         </div>
       </div>

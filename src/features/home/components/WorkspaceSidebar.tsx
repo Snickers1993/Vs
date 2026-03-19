@@ -26,24 +26,26 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
 
   return (
     <div className="glass-strong rounded-[1.75rem] p-4 space-y-4 shadow-[0_24px_44px_rgba(59,130,246,0.12)]">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">The Workspace</h2>
-          <p className="text-xs text-slate-600 mt-1">{workspace.length} item{workspace.length === 1 ? "" : "s"} ready for assembly</p>
+      <div className="glass-inset rounded-[1.25rem] px-3 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">The Workspace</h2>
+            <p className="text-xs text-slate-600 mt-1">{workspace.length} item{workspace.length === 1 ? "" : "s"} ready for assembly</p>
+          </div>
+          <button className="glass-btn text-xs px-3 py-1.5 rounded-full" onClick={() => clearWorkspace(userId)}>
+            Clear
+          </button>
         </div>
-        <button className="glass-btn text-xs px-2 py-1 rounded-md" onClick={() => clearWorkspace(userId)}>
-          Clear
-        </button>
       </div>
       <p className="text-slate-600 text-sm">Collect multiple blurbs, then copy everything at once.</p>
       <div className="glass-inset rounded-2xl px-3 py-2 text-xs text-slate-600">
         Build the final discharge note here. Add cards from the library, then copy the complete output.
       </div>
-      <div className="flex gap-2">
-        <button className="glass-btn flex-1 px-2 py-1 rounded-md" onClick={copyAllWorkspaceRich}>
+      <div className="glass-inset flex gap-2 rounded-[1.25rem] p-1.5">
+        <button className="glass-btn flex-1 px-3 py-2 rounded-full" onClick={copyAllWorkspaceRich}>
           Copy All (Rich)
         </button>
-        <button className="glass-btn flex-1 px-2 py-1 rounded-md" onClick={copyAllWorkspaceText}>
+        <button className="glass-btn flex-1 px-3 py-2 rounded-full" onClick={copyAllWorkspaceText}>
           Copy All (Text)
         </button>
       </div>

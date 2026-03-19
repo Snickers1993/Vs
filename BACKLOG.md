@@ -11,6 +11,7 @@ Purpose:
 ## Medium-Term
 - Expand the first validated workflow into a stronger product surface.
 - Decide whether handouts, shared blurbs, and calculations remain in the primary shell or move behind lighter secondary navigation.
+- Design a cross-platform desktop/web shell that preserves the same core workflow and interaction model intended for a future iOS app.
 - Establish project-specific conventions if they differ from the global default.
 
 ## Long-Term / Speculative

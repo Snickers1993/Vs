@@ -173,16 +173,28 @@ export default function MainWithWorkspace({
 
         {showDrawer && sidePanel && (
           <aside className="hidden xl:block sticky top-6 self-start">
-            {sidePanel === "workspace" ? (
-              <WorkspaceSidebar userId={userId} />
-            ) : (
-              <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(91,33,182,0.12)]">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Scratchpad</h2>
+            <div className="glass rounded-[2rem] p-3 shadow-[0_28px_60px_rgba(124,58,237,0.14)]">
+              <div className="mb-3 flex items-center justify-between rounded-[1.25rem] px-3 py-2 glass-inset">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-violet-700/80">Utility panel</div>
+                  <div className="text-sm font-medium text-slate-800">{sidePanel === "workspace" ? "Workspace" : "Scratchpad"}</div>
                 </div>
-                <Scratchpad />
+                <button
+                  className="glass-btn inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-700"
+                  onClick={() => setSidePanel(null)}
+                  title="Hide side panel"
+                >
+                  <PanelRightClose size={16} />
+                </button>
               </div>
-            )}
+              {sidePanel === "workspace" ? (
+                <WorkspaceSidebar userId={userId} />
+              ) : (
+                <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(91,33,182,0.12)]">
+                  <Scratchpad />
+                </div>
+              )}
+            </div>
           </aside>
         )}
       </div>
@@ -190,7 +202,7 @@ export default function MainWithWorkspace({
       {showDrawer && (
         <div className="hidden xl:flex fixed right-4 top-1/2 z-20 -translate-y-1/2 flex-col gap-3">
           <button
-            className={`glass-btn flex h-28 w-12 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 ${sidePanel === "workspace" ? "glass-strong text-violet-950" : ""}`}
+            className={`glass-btn flex h-28 w-12 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 transition-all duration-200 ${sidePanel === "workspace" ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)] -translate-x-1" : ""}`}
             onClick={() => togglePanel("workspace")}
             title="Toggle workspace"
           >
@@ -199,7 +211,7 @@ export default function MainWithWorkspace({
             </span>
           </button>
           <button
-            className={`glass-btn flex h-28 w-12 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 ${sidePanel === "scratchpad" ? "glass-strong text-violet-950" : ""}`}
+            className={`glass-btn flex h-28 w-12 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 transition-all duration-200 ${sidePanel === "scratchpad" ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)] -translate-x-1" : ""}`}
             onClick={() => togglePanel("scratchpad")}
             title="Toggle scratchpad"
           >
@@ -208,16 +220,6 @@ export default function MainWithWorkspace({
             </span>
           </button>
         </div>
-      )}
-
-      {showDrawer && sidePanel && (
-        <button
-          className="hidden xl:flex fixed right-[22.25rem] top-8 z-20 glass-btn h-10 w-10 items-center justify-center rounded-full text-slate-700"
-          onClick={() => setSidePanel(null)}
-          title="Hide side panel"
-        >
-          <PanelRightClose size={16} />
-        </button>
       )}
 
       {active === "handouts" && (

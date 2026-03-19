@@ -65,20 +65,24 @@ export default function Scratchpad() {
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="text-xs text-slate-600">Free-form notes. Auto-saves to this device.</div>
-        <div className="flex gap-2">
-          <button className="glass-btn text-xs px-2 py-1 rounded-md" onClick={copyScratchpadRich} disabled={!value}>
-            Copy Rich
-          </button>
-          <button className="glass-btn text-xs px-2 py-1 rounded-md" onClick={copyScratchpadText} disabled={!value}>
-            Copy Text
-          </button>
+    <div className="space-y-3">
+      <div className="glass-inset rounded-2xl px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs text-slate-600">Free-form notes. Auto-saves to this device.</div>
+          <div className="flex gap-2">
+            <button className="glass-btn text-xs px-3 py-1.5 rounded-full" onClick={copyScratchpadRich} disabled={!value}>
+              Copy Rich
+            </button>
+            <button className="glass-btn text-xs px-3 py-1.5 rounded-full" onClick={copyScratchpadText} disabled={!value}>
+              Copy Text
+            </button>
+          </div>
         </div>
       </div>
-      <div className="glass rounded-md">
-        <EditorContent editor={editor} />
+      <div className="glass-inset rounded-[1.25rem] p-1.5">
+        <div className="glass rounded-[1rem]">
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   );
