@@ -91,7 +91,7 @@ export async function exportAllData(userId?: string): Promise<void> {
   }
 }
 
-export async function importData(userId?: string): Promise<void> {
+export async function importData(userId?: string, onComplete?: () => void): Promise<void> {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".json";
@@ -121,7 +121,11 @@ export async function importData(userId?: string): Promise<void> {
       }
 
       alert(`Successfully imported ${data.sections.length} sections!`);
-      window.location.reload();
+      if (onComplete) {
+        onComplete();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Import failed:", error);
       alert("Import failed. Please check the file format and try again.");

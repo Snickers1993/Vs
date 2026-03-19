@@ -63,15 +63,16 @@ model VerificationToken {
 }
 
 model Section {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   collection  String
   title       String
   content     String
-  isPublic    Boolean  @default(false)
-  isStarred   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isPublic    Boolean   @default(false)
+  isStarred   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, collection])

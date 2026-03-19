@@ -70,7 +70,7 @@ export async function DELETE(
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
-    await prisma.section.delete({ where: { id } });
+    await prisma.section.update({ where: { id }, data: { deletedAt: new Date() } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.warn("Database not available, returning error:", error);

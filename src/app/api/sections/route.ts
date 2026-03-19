@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([]);
     }
 
-    const where: { userId: string; collection?: string } = { userId: sessionInfo.userId };
+    const where: { userId: string; collection?: string; deletedAt: null } = { userId: sessionInfo.userId, deletedAt: null };
     if (collection) where.collection = collection;
     const sections = await prisma.section.findMany({ where, orderBy: { updatedAt: "desc" } });
     return NextResponse.json(sections);

@@ -36,7 +36,7 @@ export default function SharedBlurbsManager() {
         const response = await fetch("/api/shared-sections");
         if (response.ok) {
           const data = await response.json();
-          setSharedSections(data);
+          setSharedSections(Array.isArray(data) ? data : data.items ?? []);
         }
       } catch (error) {
         console.error("Failed to fetch shared sections:", error);

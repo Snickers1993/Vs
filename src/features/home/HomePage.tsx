@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Calculator, Download, Plus, Star, Upload } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { type CollectionKey, useStarredSections } from "@/lib/db";
@@ -30,6 +30,10 @@ export default function HomePage() {
 
   const { sections, add, updateTitle, updateContent, updatePublic, updateStarred, removeById, syncLocalToServer } = useCollection(collectionForActive, userId);
   const starredSections = useStarredSections(userId);
+
+  const handleImport = useCallback(() => {
+    importData(userId, () => { /* Dexie live queries auto-update */ });
+  }, [userId]);
 
   const visibleSections = useMemo(() => {
     const baseSections = active === "starred" ? starredSections : sections;
@@ -129,7 +133,7 @@ export default function HomePage() {
               </button>
               <button
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
-                onClick={() => importData(userId)}
+                onClick={handleImport}
                 title="Upload data backup"
               >
                 <Upload size={14} /> Import
