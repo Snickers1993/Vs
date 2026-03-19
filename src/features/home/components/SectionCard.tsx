@@ -72,10 +72,10 @@ export default function SectionCard({
   };
 
   return (
-    <div className="glass rounded-xl p-4 space-y-3">
+    <div className="glass-strong rounded-[1.5rem] p-4 space-y-3 shadow-[0_22px_40px_rgba(148,163,184,0.18)]">
       <div className="flex items-center gap-2">
         <input
-          className="flex-1 min-w-0 bg-transparent outline-none text-lg font-semibold px-2 h-9 rounded hover:bg-white/20 focus:bg-white/20"
+          className="flex-1 min-w-0 bg-transparent outline-none text-lg font-semibold px-2 h-9 rounded-xl hover:bg-white/25 focus:bg-white/25"
           value={localTitle}
           onChange={(event) => setLocalTitle(event.target.value)}
           placeholder="Title"
@@ -109,13 +109,13 @@ export default function SectionCard({
         <div className="space-y-2">
           <button
             type="button"
-            className="relative w-full text-left rounded-md bg-white/20 border border-white/25 p-3 text-sm text-slate-700 max-h-24 overflow-hidden hover:bg-white/30"
+            className="glass-inset relative w-full text-left rounded-2xl p-3 text-sm text-slate-700 max-h-24 overflow-hidden hover:bg-white/35"
             onClick={() => setExpanded(true)}
             title="Click to expand"
           >
             {previewText ? previewText : "Click to add content..."}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/40 to-transparent" />
-            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-600 text-xs bg-white/30 px-2 py-0.5 rounded backdrop-blur-sm">
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/55 via-white/15 to-transparent" />
+            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-700 text-xs bg-white/35 px-2 py-0.5 rounded-full backdrop-blur-md border border-white/40 shadow-[0_8px_18px_rgba(15,23,42,0.08)]">
               Expand <ChevronDown size={14} />
             </div>
           </button>

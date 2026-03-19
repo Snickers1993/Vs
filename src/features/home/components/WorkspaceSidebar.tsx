@@ -25,14 +25,20 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
   };
 
   return (
-    <div className="glass rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">The Workspace</h2>
+    <div className="glass-strong rounded-[1.75rem] p-4 space-y-4 shadow-[0_24px_44px_rgba(59,130,246,0.12)]">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">The Workspace</h2>
+          <p className="text-xs text-slate-600 mt-1">{workspace.length} item{workspace.length === 1 ? "" : "s"} ready for assembly</p>
+        </div>
         <button className="glass-btn text-xs px-2 py-1 rounded-md" onClick={() => clearWorkspace(userId)}>
           Clear
         </button>
       </div>
       <p className="text-slate-600 text-sm">Collect multiple blurbs, then copy everything at once.</p>
+      <div className="glass-inset rounded-2xl px-3 py-2 text-xs text-slate-600">
+        Build the final discharge note here. Add cards from the library, then copy the complete output.
+      </div>
       <div className="flex gap-2">
         <button className="glass-btn flex-1 px-2 py-1 rounded-md" onClick={copyAllWorkspaceRich}>
           Copy All (Rich)
@@ -41,9 +47,9 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
           Copy All (Text)
         </button>
       </div>
-      <div className="divide-y divide-white/20">
+      <div className="space-y-3">
         {workspace.map((item) => (
-          <div key={item.id} className="py-3">
+          <div key={item.id} className="glass-inset rounded-2xl px-3 py-3">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="font-medium">{item.title}</div>
@@ -56,7 +62,7 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
           </div>
         ))}
         {workspace.length === 0 && (
-          <div className="text-sm text-slate-600 py-6 text-center">No items yet. Use &quot;Add to Workspace&quot;.</div>
+          <div className="glass-inset rounded-2xl text-sm text-slate-600 py-6 px-4 text-center">No items yet. Use &quot;Add to Workspace&quot;.</div>
         )}
       </div>
     </div>

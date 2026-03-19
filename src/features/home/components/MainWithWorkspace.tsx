@@ -30,7 +30,7 @@ type MainWithWorkspaceProps = {
 
 function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: string }) {
   return (
-    <div className="glass rounded-xl p-4 space-y-3">
+    <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(15,23,42,0.1)]">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Handouts</h2>
       </div>
@@ -120,7 +120,7 @@ export default function MainWithWorkspace({
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {sections.length === 0 && (
-              <div className="col-span-full glass rounded-xl border-dashed !border-white/30 p-8 text-center space-y-3">
+              <div className="col-span-full glass rounded-[1.75rem] border-dashed !border-white/35 p-8 text-center space-y-3 shadow-[0_24px_44px_rgba(15,23,42,0.08)]">
                 <h3 className="text-lg font-semibold text-slate-800">No sections yet</h3>
                 <p className="text-sm text-slate-600 max-w-md mx-auto">
                   Click &quot;Add section&quot; above to create your first reusable blurb. Write once, then quickly search, assemble, and copy discharge instructions.
@@ -148,7 +148,7 @@ export default function MainWithWorkspace({
                 />
                 <div className="flex justify-end">
                   <button
-                    className="glass-btn text-xs px-2 py-1 rounded-md"
+                    className="glass-btn text-xs px-3 py-1.5 rounded-full"
                     onClick={() => addToWorkspace(section)}
                     title="Add to Workspace"
                   >
@@ -163,7 +163,7 @@ export default function MainWithWorkspace({
       <aside className="lg:col-span-1 sticky top-6 self-start space-y-6">
         <WorkspaceSidebar userId={userId} />
         {active === "handouts" && <HandoutsSidebar handouts={handouts} userId={userId} />}
-        <div className="glass rounded-xl p-4 space-y-3">
+        <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(15,23,42,0.1)]">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Scratchpad</h2>
           </div>

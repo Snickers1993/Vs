@@ -42,7 +42,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen text-slate-900">
-      <div className="mx-auto max-w-7xl px-6 py-5">
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <div className="glass rounded-[2rem] px-4 py-4 md:px-5 md:py-5 shadow-[0_28px_60px_rgba(148,163,184,0.18)]">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {DEFAULT_TABS.map((tab) => {
@@ -50,21 +51,21 @@ export default function HomePage() {
               const isFast = tab.key === "fastCalculations";
               const isShared = tab.key === "sharedBlurbs";
               const isStarred = tab.key === "starred";
-              const base = "px-2 py-1 text-sm rounded-full";
+              const base = "px-3 py-1.5 text-sm rounded-full";
               const className = isFast
                 ? isActive
-                  ? `${base} bg-amber-500/35 border border-amber-300/40 text-amber-900 backdrop-blur-sm`
+                  ? `${base} glass-strong text-amber-950 border-white/55 shadow-[0_12px_26px_rgba(245,158,11,0.14)]`
                   : `${base} glass-btn text-amber-900`
                 : isShared
                   ? isActive
-                    ? `${base} bg-blue-500/35 border border-blue-300/40 text-blue-900 backdrop-blur-sm`
+                    ? `${base} glass-strong text-blue-950 border-white/55 shadow-[0_12px_26px_rgba(59,130,246,0.14)]`
                     : `${base} glass-btn text-blue-900`
                   : isStarred
                     ? isActive
-                      ? `${base} bg-yellow-500/35 border border-yellow-300/40 text-yellow-900 backdrop-blur-sm`
+                      ? `${base} glass-strong text-yellow-950 border-white/55 shadow-[0_12px_26px_rgba(234,179,8,0.14)]`
                       : `${base} glass-btn text-yellow-900`
                     : isActive
-                      ? `${base} bg-slate-800/80 text-white border border-slate-700/40 backdrop-blur-sm`
+                      ? `${base} glass-strong text-slate-900 border-white/55 shadow-[0_12px_26px_rgba(15,23,42,0.12)]`
                       : `${base} glass-btn text-slate-800`;
 
               return (
@@ -79,7 +80,7 @@ export default function HomePage() {
 
           <div className="flex items-center gap-2">
             <button
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-800/80 text-white hover:bg-slate-800/90 backdrop-blur-sm border border-slate-700/30"
+              className="glass-strong inline-flex items-center gap-2 px-3 py-2 rounded-full text-slate-900 border-white/55 shadow-[0_14px_28px_rgba(59,130,246,0.12)]"
               onClick={() => add()}
             >
               <Plus size={18} /> Add section
@@ -141,6 +142,7 @@ export default function HomePage() {
             </div>
           </div>
         </footer>
+        </div>
       </div>
     </div>
   );
