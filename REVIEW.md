@@ -260,4 +260,224 @@ The Prisma schema is clean and appropriate:
 
 ---
 
-*End of Part 1 (Phases 1-4). Part 2 (Phases 5-8) covers UX, Performance, Testing, and Recommendations.*
+## Phase 5: User Experience Analysis
+
+### 5.1 Core Workflow UX
+
+The primary workflow — create blurbs, organize by collection, search, assemble in workspace, copy — is coherent and low-friction. The tab-based navigation across collection types (exams, diseases, medications, etc.) maps well to how veterinarians think about discharge instructions.
+
+**What works well:**
+- **Search filtering** is immediate and spans both title and content. For a library of reusable text, this is the right interaction model.
+- **Copy-to-clipboard** with both rich text and plain text options is a practical touch. Veterinary systems vary in what they accept.
+- **Workspace assembly** (add sections → reorder → copy all) is the app's core value proposition and it works cleanly.
+- **Starred sections** float to the top of lists, which accelerates repeat workflows.
+- **Collapsible section cards** with a 24-line preview and gradient fade give a good balance between scannability and detail.
+
+**What needs improvement:**
+
+1. **Tab overload.** The home page presents 11 tabs: exams, diseases, medications, monitoring, recommendations, blurbs, discharge templates, handouts, fast calculations, shared blurbs, and starred. For a first-time user, the distinction between "blurbs," "discharge templates," and "recommendations" is not self-evident. The product docs acknowledge this risk — the home surface is broader than the first-slice story.
+
+2. **No onboarding or empty states.** A new user sees empty collection tabs with no guidance on what to create first or how the workflow fits together. A brief inline prompt or example content would reduce time-to-value.
+
+3. **Copy feedback is easy to miss.** The green flash on copy lasts 1.2 seconds. In a busy clinical workflow, a user may not notice it. A toast notification or a more persistent indicator would be more reliable.
+
+4. **Workspace has no persistence indicator.** Items added to the workspace survive page refreshes (stored in Dexie) but there is no visual cue that the workspace is saved locally. Users may worry about losing assembled content.
+
+5. **Import triggers a full page reload.** `importData()` calls `window.location.reload()` after writing to Dexie. This is jarring and loses any in-progress UI state. A state refresh via React would be smoother.
+
+### 5.2 Editor Experience
+
+The Tiptap-based `RichEditor` provides a clean WYSIWYG surface with essential formatting:
+- Bold, Italic, Underline
+- Bullet and numbered lists
+- Line breaks, Undo, Redo
+
+**Gaps:**
+- **No heading support.** Discharge instructions often benefit from section headers (e.g., "Medications," "Follow-up"). The editor toolbar does not expose heading levels.
+- **No link insertion UI.** The Link extension is loaded but there is no toolbar button to insert or edit links. Users would need to know keyboard shortcuts.
+- **No image support.** Not critical for text blurbs, but some discharge workflows include diagrams.
+- **No word/character count.** Some veterinary systems have paste-length limits. A count would help users stay within bounds.
+
+### 5.3 Mobile Experience
+
+The layout uses Tailwind responsive classes, but several concerns exist:
+- **AuthButtons are hidden on mobile** (`hidden sm:flex`). Mobile users cannot sign in or out.
+- **The 2-column section grid** collapses to 1 column on small screens, which is correct.
+- **The workspace sidebar** is in the right column. On mobile, it likely stacks below the main content, making the assemble-and-copy workflow harder to use.
+- **FastCalculations tables** are wide and may require horizontal scrolling on narrow screens.
+
+### 5.4 Accessibility
+
+No explicit accessibility audit has been done. Observable gaps:
+- **No ARIA labels** on icon-only buttons (copy, star, delete, collapse).
+- **No keyboard navigation** for the tab bar beyond default browser tab-key behavior.
+- **Color-only feedback** for copy confirmation (green flash). Users with color vision differences may not perceive it.
+- **No skip-to-content link** in the layout.
+- **The rich text editor** relies on Tiptap's built-in accessibility, which is partial.
+
+---
+
+## Phase 6: Performance Analysis
+
+### 6.1 Data Loading
+
+- **Dexie queries** use `useLiveQuery` which subscribes to IndexedDB changes. This is efficient for local reads — only the affected collection is re-queried on change.
+- **Server fetches** use SWR with automatic revalidation. The default SWR behavior (revalidate on focus, revalidate on reconnect) is appropriate for this use case.
+- **No pagination.** All sections in a collection are loaded at once. For a personal blurb library this is likely fine (dozens to low hundreds of items), but would degrade with thousands.
+
+### 6.2 Rendering
+
+- **Section cards re-render on search.** Every keystroke in the search box triggers `filterSectionsBySearch()` across all sections, which calls `htmlToPlainText()` (DOM creation) for each section's content. For large collections, this could cause perceptible lag.
+- **No virtualization.** All section cards are rendered in the DOM simultaneously. For 100+ sections, this means 100+ Tiptap editor instances if cards are expanded.
+- **Workspace drag-and-drop** does not use a virtualized list, but workspace size is typically small (5-15 items), so this is not a concern.
+
+### 6.3 Bundle Size
+
+- **Tiptap** brings a significant bundle. The StarterKit alone includes ProseMirror core, which is ~100KB gzipped. This is acceptable for the app's purpose but worth noting.
+- **DOMPurify** adds ~15KB gzipped.
+- **Dexie** adds ~30KB gzipped.
+- **No code splitting** beyond Next.js App Router's default page-level splitting. All home-page components load together. Given that the app is essentially a single-page tool, this is acceptable.
+
+### 6.4 Network
+
+- **SWR caching** prevents redundant fetches within the same session.
+- **No request deduplication** for the auto-sync in `useCollection.ts`. Multiple render cycles can trigger multiple sync POSTs for the same local section.
+- **Shared sections fetch** (`/api/shared-sections`) loads all public sections from all users. This will not scale if the user base grows. Pagination or filtering by relevance would be needed.
+
+### 6.5 Performance Recommendations
+
+1. **Debounce search input** at the component level (300-500ms) to prevent per-keystroke DOM parsing.
+2. **Memoize `filterSectionsBySearch`** results with `useMemo` keyed on search term and section list.
+3. **Guard auto-sync** with a ref to prevent redundant network requests.
+4. **Add pagination** to `/api/shared-sections` before the shared blurb pool grows.
+5. **Consider virtualization** (e.g., `@tanstack/react-virtual`) if collections regularly exceed 50 items.
+
+---
+
+## Phase 7: Testing & Reliability
+
+### 7.1 Current Test Coverage
+
+**There are zero automated tests.** No test runner, no test files, no test configuration. This is explicitly called out in STATUS.md and BACKLOG.md as a known gap.
+
+### 7.2 What Should Be Tested
+
+**Tier 1 — Critical path (unit/integration tests):**
+- `useCollection` hook: add, update, delete, sync behavior, fallback to local
+- `filterSectionsBySearch`: search matching correctness
+- `sortSectionsByPriority`: ordering logic
+- `sanitizeRichTextHtml`: XSS prevention
+- `matchesUserScope`: user isolation
+- `exportAllData` / `importData`: round-trip fidelity
+
+**Tier 2 — API routes (integration tests):**
+- `POST /api/sections`: creation, ownership, idempotency
+- `PATCH /api/sections/[id]`: ownership check, partial updates
+- `DELETE /api/sections/[id]`: ownership check, 404 handling
+- `POST /api/register`: validation, duplicate handling, password hashing
+- `GET /api/shared-sections`: public-only filtering
+
+**Tier 3 — UI (component/E2E tests):**
+- Section card: create, edit title, edit content, copy, star, delete
+- Workspace: add sections, reorder, copy all, clear
+- Tab navigation and search filtering
+- Auth flow: sign up → sign in → see synced data
+
+### 7.3 Recommended Test Stack
+
+Given the project's stack (Next.js 16, React 19, App Router):
+- **Vitest** for unit and integration tests (fast, ESM-native, React Testing Library compatible)
+- **Playwright** for E2E tests (cross-browser, App Router support)
+- **MSW (Mock Service Worker)** for API mocking in integration tests
+
+### 7.4 Error Handling & Resilience
+
+**Current state:**
+- API routes return appropriate HTTP status codes (400, 401, 403, 404, 409, 503).
+- Database unavailability returns 503 with empty arrays — graceful degradation.
+- Client-side errors are caught and logged to console but not surfaced to the user.
+
+**Gaps:**
+- **No React error boundary.** A rendering error in any component will crash the entire app. An error boundary around the home page would allow graceful recovery.
+- **No global error handler** for unhandled promise rejections (e.g., failed Dexie writes).
+- **No retry logic** for failed server mutations. A network glitch during a section save silently loses the update.
+- **No health check endpoint.** There is no `/api/health` to verify database connectivity, which would be useful for monitoring.
+
+---
+
+## Phase 8: Summary & Prioritized Recommendations
+
+### 8.1 Overall Assessment
+
+VetBlurbs is a well-structured, focused application that delivers on its core promise: fast, low-friction management of reusable veterinary discharge blurbs. The architecture is sound, the code is clean, and the modular refactoring has left the codebase in a maintainable state.
+
+The project's strengths are:
+- **Clear product focus.** The discharge-blurb workflow is coherent and practically useful.
+- **Local-first resilience.** The app works without a server, which is the right default for a clinical tool.
+- **Clean module boundaries.** Components are focused, lib modules are small, API routes are thin.
+- **HTML sanitization.** DOMPurify is correctly applied to prevent XSS.
+- **Graceful server degradation.** API failures return sensible defaults rather than crashing.
+
+The project's weaknesses are:
+- **Zero automated tests.** This is the single largest risk to ongoing development.
+- **Sync layer fragility.** No conflict detection, no sync status, no guard against redundant sync.
+- **Security gaps.** No rate limiting, debug logs in production, no input validation on content size.
+- **Accessibility gaps.** No ARIA labels, no keyboard navigation, color-only feedback.
+
+### 8.2 Prioritized Action Items
+
+#### P0 — Do Before Any Feature Work
+
+| # | Action | Effort | Impact |
+|---|---|---|---|
+| 1 | Add Vitest + write tests for `useCollection`, `utils`, `matchesUserScope` | Medium | Prevents regressions in the core data layer |
+| 2 | Remove or gate `console.log` statements in API routes | Trivial | Stops PII leakage in production logs |
+| 3 | Add input length validation to section POST/PATCH endpoints | Small | Prevents storage abuse |
+| 4 | Add a React error boundary around `HomePage` | Small | Prevents full-app crashes from rendering errors |
+
+#### P1 — Do During Phase 1 Polish
+
+| # | Action | Effort | Impact |
+|---|---|---|---|
+| 5 | Guard auto-sync with a ref to prevent redundant requests | Small | Reduces unnecessary network traffic |
+| 6 | Add sync status indicator (synced/syncing/error) | Medium | Users know if their data is safe |
+| 7 | Debounce search input (300-500ms) | Small | Prevents per-keystroke DOM parsing |
+| 8 | Fix `setTimeout` cleanup in `SectionCard.tsx` copy feedback | Trivial | Prevents potential memory leaks |
+| 9 | Fix encoding issue in search placeholder text | Trivial | Visual polish |
+| 10 | Remove unused `idb-keyval` dependency | Trivial | Reduces bundle size |
+| 11 | Add ARIA labels to icon-only buttons | Small | Basic accessibility compliance |
+
+#### P2 — Do Before Production / Public Launch
+
+| # | Action | Effort | Impact |
+|---|---|---|---|
+| 12 | Add rate limiting to `/api/register` and sign-in | Medium | Prevents brute-force and enumeration attacks |
+| 13 | Configure Content Security Policy headers | Medium | Defense-in-depth against XSS |
+| 14 | Add soft deletes (`deletedAt` column) to Section model | Medium | Enables undo/recovery |
+| 15 | Plan NextAuth v4 → v5 migration | Large | Moves off maintenance-mode auth library |
+| 16 | Add Playwright E2E tests for core workflow | Medium | Validates the full user journey |
+| 17 | Fix mobile auth (AuthButtons hidden on small screens) | Small | Mobile users can sign in |
+| 18 | Add pagination to `/api/shared-sections` | Medium | Prevents scaling issues |
+
+#### P3 — Nice To Have
+
+| # | Action | Effort | Impact |
+|---|---|---|---|
+| 19 | Add heading support to rich text editor toolbar | Small | Better discharge instruction formatting |
+| 20 | Add empty-state guidance for new users | Medium | Reduces time-to-value |
+| 21 | Replace `window.location.reload()` in import with React state refresh | Medium | Smoother import UX |
+| 22 | Add conflict detection to sync (version/timestamp comparison) | Large | Prevents silent data overwrites |
+| 23 | Extract workspace sidebar from `MainWithWorkspace` | Medium | Cleaner component boundaries |
+| 24 | Move hardcoded drug data from `FastCalculations.tsx` to a data file | Small | Cleaner separation of data and UI |
+
+### 8.3 Closing Notes
+
+The codebase is in good shape for its stage. The refactoring from monolithic to modular was well-executed, the dual-persistence model is architecturally sound, and the product focus is clear. The most impactful next step is adding automated test coverage — it will unlock confident iteration on everything else.
+
+The security issues (rate limiting, input validation, debug logs) are not emergencies in a pre-launch context but should be resolved before any public-facing deployment.
+
+The UX is functional and practical. The main opportunities are reducing tab clutter (as the product docs already recognize) and adding basic accessibility support.
+
+---
+
+*Review complete. 8 phases, 24 action items, zero tests to show for it — but a solid foundation to build on.*
