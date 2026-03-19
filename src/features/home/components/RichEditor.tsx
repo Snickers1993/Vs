@@ -13,35 +13,35 @@ function Toolbar({ editor }: { editor: Editor | null }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 bg-white shadow-sm">
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+    <div className="glass flex flex-wrap items-center gap-2 rounded-md p-2">
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
         H2
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
         H3
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleBold().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleBold().run()}>
         Bold
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleItalic().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleItalic().run()}>
         Italic
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleUnderline().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleUnderline().run()}>
         Underline
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleBulletList().run()}>
         Bullets
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
         Numbers
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().setHardBreak().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().setHardBreak().run()}>
         New line
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().undo().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().undo().run()}>
         Undo
       </button>
-      <button className="px-2 py-1 text-sm rounded hover:bg-gray-100" onClick={() => editor.chain().focus().redo().run()}>
+      <button className="px-2 py-1 text-sm rounded hover:bg-white/25" onClick={() => editor.chain().focus().redo().run()}>
         Redo
       </button>
     </div>
@@ -79,7 +79,7 @@ export default function RichEditor({
   return (
     <div className="space-y-2">
       <Toolbar editor={editor} />
-      <div className="border rounded-md bg-white shadow-sm">
+      <div className="glass rounded-md">
         <EditorContent editor={editor} />
       </div>
     </div>

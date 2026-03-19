@@ -25,23 +25,23 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
   };
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm p-4 space-y-3">
+    <div className="glass rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">The Workspace</h2>
-        <button className="text-xs px-2 py-1 rounded-md border hover:bg-gray-50" onClick={() => clearWorkspace(userId)}>
+        <button className="glass-btn text-xs px-2 py-1 rounded-md" onClick={() => clearWorkspace(userId)}>
           Clear
         </button>
       </div>
       <p className="text-slate-600 text-sm">Collect multiple blurbs, then copy everything at once.</p>
       <div className="flex gap-2">
-        <button className="flex-1 px-2 py-1 rounded-md border hover:bg-gray-50" onClick={copyAllWorkspaceRich}>
+        <button className="glass-btn flex-1 px-2 py-1 rounded-md" onClick={copyAllWorkspaceRich}>
           Copy All (Rich)
         </button>
-        <button className="flex-1 px-2 py-1 rounded-md border hover:bg-gray-50" onClick={copyAllWorkspaceText}>
+        <button className="glass-btn flex-1 px-2 py-1 rounded-md" onClick={copyAllWorkspaceText}>
           Copy All (Text)
         </button>
       </div>
-      <div className="divide-y">
+      <div className="divide-y divide-white/20">
         {workspace.map((item) => (
           <div key={item.id} className="py-3">
             <div className="flex items-start justify-between gap-2">
@@ -49,7 +49,7 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
                 <div className="font-medium">{item.title}</div>
                 <div className="text-xs text-slate-600 whitespace-pre-wrap">{item.text}</div>
               </div>
-              <button className="text-xs px-2 py-1 rounded-md border hover:bg-red-50 text-red-600" onClick={() => removeWorkspaceItem(item.id)}>
+              <button className="glass-btn text-xs px-2 py-1 rounded-md text-red-600 hover:!bg-red-500/20" onClick={() => removeWorkspaceItem(item.id)}>
                 Remove
               </button>
             </div>

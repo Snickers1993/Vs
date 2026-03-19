@@ -26,16 +26,16 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
   return (
     <div className="space-y-2">
       <h3 className="font-semibold mb-2">{title}</h3>
-      <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
+      <div className="glass overflow-x-auto rounded-md">
         <table className="w-full text-sm border-separate border-spacing-0">
-          <thead className="bg-slate-50 text-slate-700">
+          <thead className="bg-white/20 text-slate-700">
             <tr>
-              <th className="text-left p-2 border-b border-slate-200">Drug</th>
-              <th className="text-left p-2 border-b border-slate-200">Concentration</th>
-              <th className="text-left p-2 border-b border-slate-200">Dosage</th>
-              <th className="text-right p-2 border-b border-slate-200">Dose</th>
-              <th className="text-right p-2 border-b border-slate-200">Volume</th>
-              <th className="text-right p-2 border-b border-slate-200">Actions</th>
+              <th className="text-left p-2 border-b border-white/20">Drug</th>
+              <th className="text-left p-2 border-b border-white/20">Concentration</th>
+              <th className="text-left p-2 border-b border-white/20">Dosage</th>
+              <th className="text-right p-2 border-b border-white/20">Dose</th>
+              <th className="text-right p-2 border-b border-white/20">Volume</th>
+              <th className="text-right p-2 border-b border-white/20">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -43,8 +43,8 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
               const { doseAmount, doseUnit } = calcDose(row);
               const volume = calcVolumeMl(row);
               return (
-                <tr key={idx} className="odd:bg-white even:bg-slate-50 align-top">
-                  <td className="p-2 border-b border-slate-200">
+                <tr key={idx} className="odd:bg-white/5 even:bg-white/15 align-top">
+                  <td className="p-2 border-b border-white/20">
                     <input
                       className="w-full rounded border px-2 py-1"
                       value={row.name}
@@ -55,7 +55,7 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
                       }}
                     />
                   </td>
-                  <td className="p-2 border-b border-slate-200">
+                  <td className="p-2 border-b border-white/20">
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -82,7 +82,7 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
                       </select>
                     </div>
                   </td>
-                  <td className="p-2 border-b border-slate-200">
+                  <td className="p-2 border-b border-white/20">
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -110,11 +110,11 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
                       </select>
                     </div>
                   </td>
-                  <td className="p-2 border-b border-slate-200 text-right whitespace-nowrap">{format(doseAmount)} {doseUnit}</td>
-                  <td className="p-2 border-b border-slate-200 text-right whitespace-nowrap">{format(volume)} mL</td>
-                  <td className="p-2 border-b border-slate-200 text-right">
+                  <td className="p-2 border-b border-white/20 text-right whitespace-nowrap">{format(doseAmount)} {doseUnit}</td>
+                  <td className="p-2 border-b border-white/20 text-right whitespace-nowrap">{format(volume)} mL</td>
+                  <td className="p-2 border-b border-white/20 text-right">
                     <button
-                      className="inline-flex h-8 items-center justify-center rounded-md border px-2 text-xs hover:bg-red-50 text-red-600"
+                      className="glass-btn inline-flex h-8 items-center justify-center rounded-md px-2 text-xs text-red-600 hover:!bg-red-500/20"
                       onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== idx))}
                     >
                       Remove
@@ -128,7 +128,7 @@ function TableEditor({ title, rows, setRows, defaultRow, calcDose, calcVolumeMl,
       </div>
       <div className="flex justify-end">
         <button
-          className="inline-flex h-9 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+          className="glass-btn inline-flex h-9 items-center justify-center gap-2 rounded-md px-3 text-sm"
           onClick={() => setRows([...rows, { ...defaultRow }])}
         >
           <Plus size={16} /> Add item
@@ -164,7 +164,7 @@ export default function FastCalculations() {
   const format = (n?: number | null, digits = 2) => (n == null || !isFinite(n) ? "-" : n.toFixed(digits));
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm p-4 space-y-4">
+    <div className="glass rounded-xl p-4 space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label className="block text-sm font-medium text-slate-700">Patient weight (kg)</label>
@@ -173,7 +173,7 @@ export default function FastCalculations() {
             onChange={(event) => setWeightKg(event.target.value)}
             type="number"
             step="0.01"
-            className="mt-1 w-36 rounded-md border px-3 py-2"
+            className="mt-1 w-36 rounded-md glass-input px-3 py-2"
             placeholder="e.g. 6.4"
           />
         </div>

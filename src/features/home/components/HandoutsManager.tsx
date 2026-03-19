@@ -5,7 +5,7 @@ import { addHandoutFromFile, deleteHandout } from "@/lib/db";
 
 export default function HandoutsManager({ handouts, userId }: { handouts: Handout[]; userId?: string }) {
   return (
-    <div className="rounded-xl border bg-white shadow-sm p-4 space-y-4">
+    <div className="glass rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Handouts</h2>
       </div>
@@ -21,7 +21,7 @@ export default function HandoutsManager({ handouts, userId }: { handouts: Handou
             }
           }}
         />
-        <span className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50 cursor-pointer">
+        <span className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm cursor-pointer">
           Upload handout
         </span>
       </label>
@@ -34,14 +34,14 @@ export default function HandoutsManager({ handouts, userId }: { handouts: Handou
             </div>
             <div className="flex items-center gap-2">
               <a
-                className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm"
                 href={URL.createObjectURL(handout.blob)}
                 download={handout.name}
               >
                 Download
               </a>
               <button
-                className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-red-50 text-red-600"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm text-red-600 hover:!bg-red-500/20"
                 onClick={() => deleteHandout(handout.id)}
               >
                 Remove

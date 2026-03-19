@@ -32,13 +32,13 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-sm rounded-xl border bg-white p-6 shadow-sm">
+      <div className="w-full max-w-sm glass rounded-xl p-6">
         <h1 className="text-xl font-semibold mb-4">Register</h1>
         <form className="space-y-3" onSubmit={onSubmit}>
           <div>
             <label className="block text-sm text-slate-700">Email</label>
             <input
-              className="mt-1 w-full rounded-md border px-3 py-2"
+              className="mt-1 w-full rounded-md glass-input px-3 py-2"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -48,7 +48,7 @@ export default function SignUpPage() {
           <div>
             <label className="block text-sm text-slate-700">Password</label>
             <input
-              className="mt-1 w-full rounded-md border px-3 py-2"
+              className="mt-1 w-full rounded-md glass-input px-3 py-2"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -56,7 +56,7 @@ export default function SignUpPage() {
             />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
-          <button className="w-full inline-flex h-10 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-800" type="submit">
+          <button className="w-full inline-flex h-10 items-center justify-center rounded-md bg-slate-800/80 text-white hover:bg-slate-800/90 backdrop-blur-sm border border-slate-700/30" type="submit">
             Create account
           </button>
         </form>

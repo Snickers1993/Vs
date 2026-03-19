@@ -29,10 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-violet-100 via-blue-50 to-teal-100 min-h-screen`}
       >
         <Providers>
-          <div className="sticky top-0 z-40 w-full border-b bg-gradient-to-r from-emerald-50 to-teal-50">
+          <div className="glass-strong sticky top-0 z-40 w-full">
             <div className="mx-auto max-w-7xl px-6 py-6 flex items-center justify-between gap-4">
               <Link href="/" className="flex items-center gap-4 group">
                 <Image
@@ -51,7 +51,7 @@ export default function RootLayout({
             </div>
           </div>
           {children}
-          <footer className="fixed inset-x-0 bottom-0 border-t bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+          <footer className="fixed inset-x-0 bottom-0 glass-strong">
             <div className="mx-auto max-w-7xl px-6 py-2 text-center text-xs text-slate-600">
               Last Updated: VetHackz Inc.  Nic Anders 9-3 TM
             </div>
