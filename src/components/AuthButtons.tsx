@@ -13,19 +13,19 @@ export default function AuthButtons() {
           <button
             className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
             onClick={() => signOut()}
+            aria-label="Sign out"
           >
             Sign out
           </button>
         </>
       ) : (
-        <>
-          <button
-            className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
-            onClick={() => signIn("credentials", { callbackUrl: "/" })}
-          >
-            Sign in
-          </button>
-        </>
+        <button
+          className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+          onClick={() => signIn("credentials", { callbackUrl: "/" })}
+          aria-label="Sign in"
+        >
+          Sign in
+        </button>
       )}
     </div>
   );

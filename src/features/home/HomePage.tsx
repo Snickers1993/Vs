@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calculator, Download, Plus, Star, Upload } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { type CollectionKey, useStarredSections } from "@/lib/db";
@@ -12,7 +12,13 @@ import { useCollection } from "@/features/home/useCollection";
 export default function HomePage() {
   const [active, setActive] = useState<TabKey>("medications");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const { data: session } = useSession();
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
   const userId = session?.user?.email?.toLowerCase();
 
   const collectionForActive: CollectionKey = useMemo(() => {
@@ -27,8 +33,8 @@ export default function HomePage() {
 
   const visibleSections = useMemo(() => {
     const baseSections = active === "starred" ? starredSections : sections;
-    return filterSectionsBySearch(baseSections, search);
-  }, [active, sections, starredSections, search]);
+    return filterSectionsBySearch(baseSections, debouncedSearch);
+  }, [active, sections, starredSections, debouncedSearch]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900">
@@ -82,7 +88,7 @@ export default function HomePage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search title or contentâ€¦"
+              placeholder="Search title or content..."
               className="w-full md:w-1/2 rounded-md border bg-white px-3 py-2 outline-none ring-0 focus:border-slate-900"
             />
           </div>

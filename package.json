@@ -30,7 +30,6 @@
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
     "dompurify": "^3.3.0",
-    "idb-keyval": "^6.2.2",
     "lucide-react": "^0.537.0",
     "next": "^16.1.7",
     "next-auth": "^4.24.12",
