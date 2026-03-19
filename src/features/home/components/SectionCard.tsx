@@ -72,17 +72,17 @@ export default function SectionCard({
   };
 
   return (
-    <div className="rounded-xl border bg-gradient-to-br from-white to-gray-50 shadow-sm p-4 space-y-3">
+    <div className="glass rounded-xl p-4 space-y-3">
       <div className="flex items-center gap-2">
         <input
-          className="flex-1 min-w-0 bg-transparent outline-none text-lg font-semibold px-2 h-9 rounded hover:bg-gray-50 focus:bg-gray-50"
+          className="flex-1 min-w-0 bg-transparent outline-none text-lg font-semibold px-2 h-9 rounded hover:bg-white/20 focus:bg-white/20"
           value={localTitle}
           onChange={(event) => setLocalTitle(event.target.value)}
           placeholder="Title"
         />
         {onToggleStarred && (
           <button
-            className="p-1 rounded hover:bg-gray-100 transition-colors"
+            className="p-1 rounded hover:bg-white/25 transition-colors"
             onClick={onToggleStarred}
             title={isStarred ? "Remove from starred" : "Add to starred"}
             aria-label={isStarred ? "Remove from starred" : "Add to starred"}
@@ -100,7 +100,7 @@ export default function SectionCard({
         <div className="space-y-2">
           <RichEditor value={section.content} onChange={onChangeContent} placeholder="Write content..." />
           <div className="flex justify-end">
-            <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-gray-50" onClick={() => setExpanded(false)}>
+            <button className="glass-btn inline-flex items-center gap-1 px-2 py-1 rounded-md" onClick={() => setExpanded(false)}>
               <ChevronUp size={16} /> Collapse
             </button>
           </div>
@@ -109,19 +109,19 @@ export default function SectionCard({
         <div className="space-y-2">
           <button
             type="button"
-            className="relative w-full text-left border rounded-md bg-white p-3 text-sm text-slate-700 max-h-24 overflow-hidden hover:bg-gray-50"
+            className="relative w-full text-left rounded-md bg-white/20 border border-white/25 p-3 text-sm text-slate-700 max-h-24 overflow-hidden hover:bg-white/30"
             onClick={() => setExpanded(true)}
             title="Click to expand"
           >
             {previewText ? previewText : "Click to add content..."}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
-            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-600 text-xs bg-white/80 px-2 py-0.5 rounded">
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/40 to-transparent" />
+            <div className="absolute right-2 bottom-2 inline-flex items-center gap-1 text-slate-600 text-xs bg-white/30 px-2 py-0.5 rounded backdrop-blur-sm">
               Expand <ChevronDown size={14} />
             </div>
           </button>
           <div className="flex justify-end">
             <button
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-gray-50 text-xs"
+              className="glass-btn inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs"
               onClick={() => setExpanded(true)}
               title="Edit content"
             >
@@ -131,7 +131,7 @@ export default function SectionCard({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-200">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/20">
         <div className="flex items-center gap-4">
           {onTogglePublic && (
             <label className="flex items-center gap-2 text-sm">
@@ -142,7 +142,7 @@ export default function SectionCard({
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border bg-white px-2 text-xs hover:bg-gray-50"
+            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs"
             onClick={handleCopyHtml}
             title="Copy to clipboard"
             aria-label="Copy as rich text"
@@ -150,7 +150,7 @@ export default function SectionCard({
             <Copy size={14} /> Copy
           </button>
           <button
-            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border bg-white px-2 text-xs hover:bg-gray-50"
+            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs"
             onClick={handleCopyText}
             title="Copy as plain text"
             aria-label="Copy as plain text"
@@ -158,7 +158,7 @@ export default function SectionCard({
             Plain
           </button>
           <button
-            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-xs hover:bg-red-50 text-red-600"
+            className="glass-btn inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs text-red-600 hover:!bg-red-500/20"
             onClick={onDelete}
             title="Delete section"
             aria-label="Delete section"

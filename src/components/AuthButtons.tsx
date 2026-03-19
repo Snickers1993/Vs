@@ -11,7 +11,7 @@ export default function AuthButtons() {
         <>
           <span className="text-sm text-slate-700 hidden sm:inline">{email}</span>
           <button
-            className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+            className="inline-flex h-9 items-center justify-center rounded-md glass-btn px-3 text-sm"
             onClick={() => signOut()}
             aria-label="Sign out"
           >
@@ -20,7 +20,7 @@ export default function AuthButtons() {
         </>
       ) : (
         <button
-          className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+          className="inline-flex h-9 items-center justify-center rounded-md glass-btn px-3 text-sm"
           onClick={() => signIn("credentials", { callbackUrl: "/" })}
           aria-label="Sign in"
         >

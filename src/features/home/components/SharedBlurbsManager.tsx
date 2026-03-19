@@ -64,7 +64,7 @@ export default function SharedBlurbsManager() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border bg-white shadow-sm p-8 text-center">
+      <div className="glass rounded-xl p-8 text-center">
         <div className="text-slate-600">Loading shared blurbs...</div>
       </div>
     );
@@ -72,7 +72,7 @@ export default function SharedBlurbsManager() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white shadow-sm p-4">
+      <div className="glass rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-3">Shared Blurbs</h2>
         <p className="text-sm text-slate-600 mb-4">
           Discover blurbs shared by other veterinarians. These are public blurbs that can help with common cases.
@@ -81,7 +81,7 @@ export default function SharedBlurbsManager() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search shared blurbs..."
-          className="w-full rounded-md border bg-white px-3 py-2 outline-none ring-0 focus:border-slate-900"
+          className="w-full rounded-md glass-input px-3 py-2 text-slate-900 placeholder:text-slate-500"
         />
       </div>
 

@@ -30,7 +30,7 @@ type MainWithWorkspaceProps = {
 
 function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: string }) {
   return (
-    <div className="rounded-xl border bg-white shadow-sm p-4 space-y-3">
+    <div className="glass rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Handouts</h2>
       </div>
@@ -46,7 +46,7 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
             }
           }}
         />
-        <span className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50 cursor-pointer">
+        <span className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm cursor-pointer">
           Upload handout
         </span>
       </label>
@@ -59,7 +59,7 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
             </div>
             <div className="flex items-center gap-2">
               <a
-                className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm"
                 href={URL.createObjectURL(handout.blob)}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -67,14 +67,14 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
                 Open
               </a>
               <a
-                className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-gray-50"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm"
                 href={URL.createObjectURL(handout.blob)}
                 download={handout.name}
               >
                 Download
               </a>
               <button
-                className="inline-flex h-9 items-center justify-center rounded-md border bg-white px-3 text-sm hover:bg-red-50 text-red-600"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm text-red-600 hover:!bg-red-500/20"
                 onClick={() => deleteHandout(handout.id)}
               >
                 Remove
@@ -120,7 +120,7 @@ export default function MainWithWorkspace({
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {sections.length === 0 && (
-              <div className="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center space-y-3">
+              <div className="col-span-full glass rounded-xl border-dashed !border-white/30 p-8 text-center space-y-3">
                 <h3 className="text-lg font-semibold text-slate-800">No sections yet</h3>
                 <p className="text-sm text-slate-600 max-w-md mx-auto">
                   Click &quot;Add section&quot; above to create your first reusable blurb. Write once, then quickly search, assemble, and copy discharge instructions.
@@ -148,7 +148,7 @@ export default function MainWithWorkspace({
                 />
                 <div className="flex justify-end">
                   <button
-                    className="text-xs px-2 py-1 rounded-md border hover:bg-gray-50"
+                    className="glass-btn text-xs px-2 py-1 rounded-md"
                     onClick={() => addToWorkspace(section)}
                     title="Add to Workspace"
                   >
@@ -163,7 +163,7 @@ export default function MainWithWorkspace({
       <aside className="lg:col-span-1 sticky top-6 self-start space-y-6">
         <WorkspaceSidebar userId={userId} />
         {active === "handouts" && <HandoutsSidebar handouts={handouts} userId={userId} />}
-        <div className="rounded-xl border bg-white shadow-sm p-4 space-y-3">
+        <div className="glass rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Scratchpad</h2>
           </div>

@@ -41,7 +41,7 @@ export default function HomePage() {
   }, [active, sections, starredSections, debouncedSearch]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <div className="mx-auto max-w-7xl px-6 py-5">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
@@ -50,22 +50,22 @@ export default function HomePage() {
               const isFast = tab.key === "fastCalculations";
               const isShared = tab.key === "sharedBlurbs";
               const isStarred = tab.key === "starred";
-              const base = "px-2 py-1 text-sm rounded-full border";
+              const base = "px-2 py-1 text-sm rounded-full";
               const className = isFast
                 ? isActive
-                  ? `${base} bg-amber-600 border-amber-700 text-white`
-                  : `${base} bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100`
+                  ? `${base} bg-amber-500/35 border border-amber-300/40 text-amber-900 backdrop-blur-sm`
+                  : `${base} glass-btn text-amber-900`
                 : isShared
                   ? isActive
-                    ? `${base} bg-blue-600 border-blue-700 text-white`
-                    : `${base} bg-blue-50 border-blue-300 text-blue-900 hover:bg-blue-100`
+                    ? `${base} bg-blue-500/35 border border-blue-300/40 text-blue-900 backdrop-blur-sm`
+                    : `${base} glass-btn text-blue-900`
                   : isStarred
                     ? isActive
-                      ? `${base} bg-yellow-600 border-yellow-700 text-white`
-                      : `${base} bg-yellow-50 border-yellow-300 text-yellow-900 hover:bg-yellow-100`
+                      ? `${base} bg-yellow-500/35 border border-yellow-300/40 text-yellow-900 backdrop-blur-sm`
+                      : `${base} glass-btn text-yellow-900`
                     : isActive
-                      ? `${base} bg-slate-900 text-white`
-                      : `${base} bg-white hover:bg-gray-50`;
+                      ? `${base} bg-slate-800/80 text-white border border-slate-700/40 backdrop-blur-sm`
+                      : `${base} glass-btn text-slate-800`;
 
               return (
                 <button key={tab.key} className={className} onClick={() => setActive(tab.key)}>
@@ -79,7 +79,7 @@ export default function HomePage() {
 
           <div className="flex items-center gap-2">
             <button
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-800/80 text-white hover:bg-slate-800/90 backdrop-blur-sm border border-slate-700/30"
               onClick={() => add()}
             >
               <Plus size={18} /> Add section
@@ -93,7 +93,7 @@ export default function HomePage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search title or content..."
-              className="w-full md:w-1/2 rounded-md border bg-white px-3 py-2 outline-none ring-0 focus:border-slate-900"
+              className="w-full md:w-1/2 rounded-md glass-input px-3 py-2 text-slate-900 placeholder:text-slate-500"
             />
           </div>
         )}
@@ -111,28 +111,28 @@ export default function HomePage() {
           userId={userId}
         />
 
-        <footer className="mt-8 pt-4 border-t border-gray-200">
+        <footer className="mt-8 pt-4 border-t border-white/20">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-slate-600">
               VetBlurbs - Veterinary Practice Management
             </div>
             <div className="flex gap-2">
               <button
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-blue-50 text-blue-700 hover:bg-blue-100"
+                className="glass-btn inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md text-blue-700"
                 onClick={syncLocalToServer}
                 title="Sync local data to server"
               >
                 <Upload size={14} /> Sync
               </button>
               <button
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
+                className="glass-btn inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md text-slate-700"
                 onClick={() => exportAllData(userId)}
                 title="Download all data"
               >
                 <Download size={14} /> Export
               </button>
               <button
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border bg-white hover:bg-gray-50"
+                className="glass-btn inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md text-slate-700"
                 onClick={handleImport}
                 title="Upload data backup"
               >
