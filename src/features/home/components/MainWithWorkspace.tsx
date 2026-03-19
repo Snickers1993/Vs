@@ -8,12 +8,13 @@ import {
   deleteHandout,
   useHandouts,
 } from "@/lib/db";
-import { NotebookPen, PanelRightClose, PanelRightOpen, SquarePen } from "lucide-react";
+import { NotebookPen, PanelLeftOpen, SquarePen } from "lucide-react";
 import HandoutsManager from "@/features/home/components/HandoutsManager";
 import FastCalculations from "@/features/home/components/FastCalculations";
 import Scratchpad from "@/features/home/components/Scratchpad";
 import SectionCard from "@/features/home/components/SectionCard";
 import SharedBlurbsManager from "@/features/home/components/SharedBlurbsManager";
+import UtilityPanelShell from "@/features/home/components/UtilityPanelShell";
 import WorkspaceSidebar from "@/features/home/components/WorkspaceSidebar";
 import type { Section, TabKey } from "@/features/home/types";
 
@@ -29,6 +30,8 @@ type MainWithWorkspaceProps = {
   active: TabKey;
   userId?: string;
 };
+
+type UtilityPanel = "workspace" | "scratchpad" | null;
 
 function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: string }) {
   return (
@@ -48,7 +51,7 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
             }
           }}
         />
-        <span className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm cursor-pointer">
+        <span className="glass-btn inline-flex h-9 items-center justify-center rounded-full px-3 text-sm cursor-pointer">
           Upload handout
         </span>
       </label>
@@ -61,7 +64,7 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
             </div>
             <div className="flex items-center gap-2">
               <a
-                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-full px-3 text-sm"
                 href={URL.createObjectURL(handout.blob)}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -69,14 +72,14 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
                 Open
               </a>
               <a
-                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-full px-3 text-sm"
                 href={URL.createObjectURL(handout.blob)}
                 download={handout.name}
               >
                 Download
               </a>
               <button
-                className="glass-btn inline-flex h-9 items-center justify-center rounded-md px-3 text-sm text-red-600 hover:!bg-red-500/20"
+                className="glass-btn inline-flex h-9 items-center justify-center rounded-full px-3 text-sm text-red-600 hover:!bg-red-500/14"
                 onClick={() => deleteHandout(handout.id)}
               >
                 Remove
@@ -88,6 +91,34 @@ function HandoutsSidebar({ handouts, userId }: { handouts: Handout[]; userId?: s
           <li className="text-sm text-slate-600 py-6 text-center">No handouts uploaded yet.</li>
         )}
       </ul>
+    </div>
+  );
+}
+
+function UtilityRail({ sidePanel, setSidePanel }: { sidePanel: UtilityPanel; setSidePanel: (panel: UtilityPanel) => void }) {
+  const tabs = [
+    { key: "workspace" as const, label: "Workspace", icon: PanelLeftOpen },
+    { key: "scratchpad" as const, label: "Scratchpad", icon: NotebookPen },
+  ];
+
+  return (
+    <div className="hidden xl:flex flex-col gap-3 sticky top-6 self-start">
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const active = sidePanel === tab.key;
+        return (
+          <button
+            key={tab.key}
+            className={`glass-btn flex min-h-[8rem] w-14 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 transition-all duration-200 ${active ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)]" : ""}`}
+            onClick={() => setSidePanel(active ? null : tab.key)}
+            title={`Toggle ${tab.label.toLowerCase()}`}
+          >
+            <span className="flex flex-col items-center gap-2 [writing-mode:vertical-rl]">
+              <Icon size={16} /> {tab.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -105,21 +136,37 @@ export default function MainWithWorkspace({
   userId,
 }: MainWithWorkspaceProps) {
   const handouts = useHandouts(userId);
-  const [sidePanel, setSidePanel] = useState<"workspace" | "scratchpad" | null>("workspace");
+  const [sidePanel, setSidePanel] = useState<UtilityPanel>("workspace");
 
   const addToWorkspace = async (section: Section) => {
     await addWorkspaceItem({ title: section.title, html: section.content, userId });
+    setSidePanel("workspace");
   };
 
-  const togglePanel = (panel: "workspace" | "scratchpad") => {
-    setSidePanel((current) => (current === panel ? null : panel));
-  };
-
-  const showDrawer = active !== "handouts";
+  const showUtilities = active !== "handouts";
+  const showLeftPanel = showUtilities && sidePanel !== null;
 
   return (
     <div className="relative">
-      <div className={`grid grid-cols-1 gap-6 items-start transition-[grid-template-columns,padding-right] duration-300 xl:${showDrawer && sidePanel ? "grid-cols-[minmax(0,1fr)_23rem] pr-16" : "grid-cols-[minmax(0,1fr)] pr-16"}`}>
+      <div className={`grid grid-cols-1 gap-6 items-start transition-[grid-template-columns] duration-300 xl:${showUtilities ? showLeftPanel ? "grid-cols-[3.6rem_22rem_minmax(0,1fr)]" : "grid-cols-[3.6rem_minmax(0,1fr)]" : "grid-cols-[minmax(0,1fr)]"}`}>
+        {showUtilities && <UtilityRail sidePanel={sidePanel} setSidePanel={setSidePanel} />}
+
+        {showUtilities && showLeftPanel && (
+          <aside className="hidden xl:block sticky top-6 self-start">
+            {sidePanel === "workspace" ? (
+              <UtilityPanelShell eyebrow="Assembly area" title="Workspace" onClose={() => setSidePanel(null)}>
+                <WorkspaceSidebar userId={userId} />
+              </UtilityPanelShell>
+            ) : (
+              <UtilityPanelShell eyebrow="Quick notes" title="Scratchpad" onClose={() => setSidePanel(null)}>
+                <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(91,33,182,0.12)]">
+                  <Scratchpad />
+                </div>
+              </UtilityPanelShell>
+            )}
+          </aside>
+        )}
+
         <div>
           {active === "handouts" ? (
             <HandoutsManager handouts={handouts} userId={userId} />
@@ -133,94 +180,35 @@ export default function MainWithWorkspace({
                 <div className="col-span-full glass rounded-[1.75rem] border-dashed !border-white/35 p-8 text-center space-y-3 shadow-[0_24px_44px_rgba(15,23,42,0.08)]">
                   <h3 className="text-lg font-semibold text-slate-800">No sections yet</h3>
                   <p className="text-sm text-slate-600 max-w-md mx-auto">
-                    Click &quot;Add section&quot; above to create your first reusable blurb. Write once, then quickly search, assemble, and copy discharge instructions.
+                    Click &quot;Add section&quot; above to create your first reusable blurb. Write once, then quickly search, stage, and copy discharge instructions.
                   </p>
                   <div className="text-xs text-slate-500 space-y-1">
                     <p>1. Create blurbs for common cases (medications, exam findings, follow-up care)</p>
                     <p>2. Use the search bar to find them fast</p>
-                    <p>3. Add blurbs to the Workspace, then copy everything at once</p>
+                    <p>3. Stage blurbs in Workspace, then copy the final note</p>
                   </div>
                 </div>
               )}
               {sections.map((section) => (
-                <div key={section.id} className="space-y-2">
-                  <SectionCard
-                    section={section}
-                    onChangeTitle={(title) => updateTitle(section.id, title)}
-                    onChangeContent={(content) => updateContent(section.id, content)}
-                    onCopy={() => handleCopy(section.title, section.content)}
-                    onCopyText={() => handleCopyText(section.title, section.content)}
-                    onDelete={() => removeById(section.id)}
-                    onTogglePublic={() => updatePublic(section.id, !section.isPublic)}
-                    onToggleStarred={() => updateStarred(section.id, !section.isStarred)}
-                    isPublic={section.isPublic}
-                    isStarred={section.isStarred}
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      className="glass-btn text-xs px-3 py-1.5 rounded-full"
-                      onClick={() => addToWorkspace(section)}
-                      title="Add to Workspace"
-                    >
-                      Add to Workspace
-                    </button>
-                  </div>
-                </div>
+                <SectionCard
+                  key={section.id}
+                  section={section}
+                  onChangeTitle={(title) => updateTitle(section.id, title)}
+                  onChangeContent={(content) => updateContent(section.id, content)}
+                  onCopy={() => handleCopy(section.title, section.content)}
+                  onCopyText={() => handleCopyText(section.title, section.content)}
+                  onDelete={() => removeById(section.id)}
+                  onAddToWorkspace={() => addToWorkspace(section)}
+                  onTogglePublic={() => updatePublic(section.id, !section.isPublic)}
+                  onToggleStarred={() => updateStarred(section.id, !section.isStarred)}
+                  isPublic={section.isPublic}
+                  isStarred={section.isStarred}
+                />
               ))}
             </div>
           )}
         </div>
-
-        {showDrawer && sidePanel && (
-          <aside className="hidden xl:block sticky top-6 self-start">
-            <div className="glass rounded-[2rem] p-3 shadow-[0_28px_60px_rgba(124,58,237,0.14)]">
-              <div className="mb-3 flex items-center justify-between rounded-[1.25rem] px-3 py-2 glass-inset">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-violet-700/80">Utility panel</div>
-                  <div className="text-sm font-medium text-slate-800">{sidePanel === "workspace" ? "Workspace" : "Scratchpad"}</div>
-                </div>
-                <button
-                  className="glass-btn inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-700"
-                  onClick={() => setSidePanel(null)}
-                  title="Hide side panel"
-                >
-                  <PanelRightClose size={16} />
-                </button>
-              </div>
-              {sidePanel === "workspace" ? (
-                <WorkspaceSidebar userId={userId} />
-              ) : (
-                <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(91,33,182,0.12)]">
-                  <Scratchpad />
-                </div>
-              )}
-            </div>
-          </aside>
-        )}
       </div>
-
-      {showDrawer && (
-        <div className="hidden xl:flex fixed right-4 top-1/2 z-20 -translate-y-1/2 flex-col gap-3">
-          <button
-            className={`glass-btn flex h-28 w-12 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 transition-all duration-200 ${sidePanel === "workspace" ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)] -translate-x-1" : ""}`}
-            onClick={() => togglePanel("workspace")}
-            title="Toggle workspace"
-          >
-            <span className="flex rotate-180 flex-col items-center gap-2 [writing-mode:vertical-rl]">
-              <PanelRightOpen size={16} /> Workspace
-            </span>
-          </button>
-          <button
-            className={`glass-btn flex h-28 w-12 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 transition-all duration-200 ${sidePanel === "scratchpad" ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)] -translate-x-1" : ""}`}
-            onClick={() => togglePanel("scratchpad")}
-            title="Toggle scratchpad"
-          >
-            <span className="flex rotate-180 flex-col items-center gap-2 [writing-mode:vertical-rl]">
-              <NotebookPen size={16} /> Scratchpad
-            </span>
-          </button>
-        </div>
-      )}
 
       {active === "handouts" && (
         <aside className="mt-6">
@@ -228,7 +216,7 @@ export default function MainWithWorkspace({
         </aside>
       )}
 
-      {showDrawer && (
+      {showUtilities && (
         <div className="mt-6 grid gap-4 xl:hidden">
           <details className="glass rounded-[1.5rem] p-4">
             <summary className="cursor-pointer list-none flex items-center justify-between font-semibold text-slate-800">

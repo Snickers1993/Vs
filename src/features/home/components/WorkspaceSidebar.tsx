@@ -29,42 +29,44 @@ export default function WorkspaceSidebar({ userId }: { userId?: string }) {
       <div className="glass-inset rounded-[1.25rem] px-3 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">The Workspace</h2>
-            <p className="text-xs text-slate-600 mt-1">{workspace.length} item{workspace.length === 1 ? "" : "s"} ready for assembly</p>
+            <h2 className="text-lg font-semibold">Final assembly</h2>
+            <p className="text-xs text-slate-600 mt-1">{workspace.length} section{workspace.length === 1 ? "" : "s"} staged for the final note</p>
           </div>
           <button className="glass-btn text-xs px-3 py-1.5 rounded-full" onClick={() => clearWorkspace(userId)}>
             Clear
           </button>
         </div>
       </div>
-      <p className="text-slate-600 text-sm">Collect multiple blurbs, then copy everything at once.</p>
-      <div className="glass-inset rounded-2xl px-3 py-2 text-xs text-slate-600">
-        Build the final discharge note here. Add cards from the library, then copy the complete output.
+
+      <div className="glass-inset rounded-2xl px-3 py-3 text-sm text-slate-600">
+        Use this panel as the final discharge assembly area. Add the strongest blurbs from the library, then copy the finished output when ready.
       </div>
+
       <div className="glass-inset flex gap-2 rounded-[1.25rem] p-1.5">
         <button className="glass-btn flex-1 px-3 py-2 rounded-full" onClick={copyAllWorkspaceRich}>
-          Copy All (Rich)
+          Copy final note
         </button>
         <button className="glass-btn flex-1 px-3 py-2 rounded-full" onClick={copyAllWorkspaceText}>
-          Copy All (Text)
+          Copy plain text
         </button>
       </div>
+
       <div className="space-y-3">
         {workspace.map((item) => (
           <div key={item.id} className="glass-inset rounded-2xl px-3 py-3">
             <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="font-medium">{item.title}</div>
+              <div className="min-w-0">
+                <div className="font-medium truncate">{item.title}</div>
                 <div className="text-xs text-slate-600 whitespace-pre-wrap">{item.text}</div>
               </div>
-              <button className="glass-btn text-xs px-2 py-1 rounded-md text-red-600 hover:!bg-red-500/20" onClick={() => removeWorkspaceItem(item.id)}>
+              <button className="glass-btn text-xs px-3 py-1.5 rounded-full text-red-600 hover:!bg-red-500/14" onClick={() => removeWorkspaceItem(item.id)}>
                 Remove
               </button>
             </div>
           </div>
         ))}
         {workspace.length === 0 && (
-          <div className="glass-inset rounded-2xl text-sm text-slate-600 py-6 px-4 text-center">No items yet. Use &quot;Add to Workspace&quot;.</div>
+          <div className="glass-inset rounded-2xl text-sm text-slate-600 py-6 px-4 text-center">No sections staged yet. Use “Add to Workspace” on any card.</div>
         )}
       </div>
     </div>
