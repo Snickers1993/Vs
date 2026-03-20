@@ -102,23 +102,27 @@ function UtilityRail({ sidePanel, setSidePanel }: { sidePanel: UtilityPanel; set
   ];
 
   return (
-    <div className="hidden xl:flex flex-col gap-3 sticky top-6 self-start">
-      {tabs.map((tab) => {
-        const Icon = tab.icon;
-        const active = sidePanel === tab.key;
-        return (
-          <button
-            key={tab.key}
-            className={`glass-btn flex min-h-[8rem] w-14 items-center justify-center rounded-[1.5rem] px-2 text-xs font-medium text-slate-700 transition-all duration-200 ${active ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)]" : ""}`}
-            onClick={() => setSidePanel(active ? null : tab.key)}
-            title={`Toggle ${tab.label.toLowerCase()}`}
-          >
-            <span className="flex flex-col items-center gap-2 [writing-mode:vertical-rl]">
+    <div className="glass rounded-[2rem] p-3 shadow-[0_28px_60px_rgba(124,58,237,0.14)]">
+      <div className="mb-3 rounded-[1.25rem] px-3 py-2 glass-inset">
+        <div className="text-[11px] uppercase tracking-[0.18em] text-violet-700/80">Utility river</div>
+        <div className="text-sm font-medium text-slate-800">Workspace and scratchpad</div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = sidePanel === tab.key;
+          return (
+            <button
+              key={tab.key}
+              className={`glass-btn inline-flex min-h-12 items-center justify-center gap-2 rounded-[1.25rem] px-3 py-3 text-sm font-medium text-slate-700 transition-all duration-200 ${active ? "glass-strong text-violet-950 shadow-[0_14px_30px_rgba(124,58,237,0.16)]" : ""}`}
+              onClick={() => setSidePanel(active ? null : tab.key)}
+              title={`Toggle ${tab.label.toLowerCase()}`}
+            >
               <Icon size={16} /> {tab.label}
-            </span>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -148,22 +152,26 @@ export default function MainWithWorkspace({
 
   return (
     <div className="relative">
-      <div className={`grid grid-cols-1 gap-6 items-start transition-[grid-template-columns] duration-300 xl:${showUtilities ? showLeftPanel ? "grid-cols-[3.6rem_22rem_minmax(0,1fr)]" : "grid-cols-[3.6rem_minmax(0,1fr)]" : "grid-cols-[minmax(0,1fr)]"}`}>
-        {showUtilities && <UtilityRail sidePanel={sidePanel} setSidePanel={setSidePanel} />}
-
-        {showUtilities && showLeftPanel && (
+      <div className={`grid grid-cols-1 gap-6 items-start transition-[grid-template-columns] duration-300 xl:${showUtilities ? "grid-cols-[24rem_minmax(0,1fr)]" : "grid-cols-[minmax(0,1fr)]"}`}>
+        {showUtilities && (
           <aside className="hidden xl:block sticky top-6 self-start">
-            {sidePanel === "workspace" ? (
-              <UtilityPanelShell eyebrow="Assembly area" title="Workspace" onClose={() => setSidePanel(null)}>
-                <WorkspaceSidebar userId={userId} />
-              </UtilityPanelShell>
-            ) : (
-              <UtilityPanelShell eyebrow="Quick notes" title="Scratchpad" onClose={() => setSidePanel(null)}>
-                <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(91,33,182,0.12)]">
-                  <Scratchpad />
-                </div>
-              </UtilityPanelShell>
-            )}
+            <div className="space-y-4">
+              <UtilityRail sidePanel={sidePanel} setSidePanel={setSidePanel} />
+
+              {showLeftPanel && (
+                sidePanel === "workspace" ? (
+                  <UtilityPanelShell eyebrow="Assembly area" title="Workspace" onClose={() => setSidePanel(null)}>
+                    <WorkspaceSidebar userId={userId} />
+                  </UtilityPanelShell>
+                ) : (
+                  <UtilityPanelShell eyebrow="Quick notes" title="Scratchpad" onClose={() => setSidePanel(null)}>
+                    <div className="glass rounded-[1.5rem] p-4 space-y-3 shadow-[0_18px_34px_rgba(91,33,182,0.12)]">
+                      <Scratchpad />
+                    </div>
+                  </UtilityPanelShell>
+                )
+              )}
+            </div>
           </aside>
         )}
 
